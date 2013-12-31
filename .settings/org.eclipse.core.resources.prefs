@@ -1,0 +1,22 @@
+#Thu Dec 26 17:19:01 EET 2013
+eclipse.preferences.version=1
+encoding//corpustats/metacorpus.py=utf-8
+encoding//corpustats/metanewsanalysis.py=utf-8
+encoding//geziyakurdi/__init__.py=utf-8
+encoding//geziyakurdi/articleanalysis.py=utf-8
+encoding//geziyakurdi/documentsimilarity.py=utf-8
+encoding//geziyakurdi/preparelatex.py=utf-8
+encoding//geziyakurdi/preparewordle.py=utf-8
+encoding//languagetools/BigramFeatures.py=utf-8
+encoding//languagetools/SAKsParser.py=utf-8
+encoding//processing/Crawling2.py=utf-8
+encoding//processing/IO.py=utf-8
+encoding//processing/crawling_oldradikal.py=utf-8
+encoding//sentimentfinding/IOtools.py=utf-8
+encoding//sentimentfinding/cdftest_bigram.py=utf-8
+encoding//sentimentfinding/cfdtest.py=utf-8
+encoding//sentimentfinding/cfdtest2.py=utf-8
+encoding//subjectivity/dataspaceV2.py=utf-8
+encoding//txtprocessor/comparenewsitemformats.py=utf-8
+encoding//txtprocessor/dateutils.py=utf-8
+encoding//txtprocessor/texter.py=utf-8
