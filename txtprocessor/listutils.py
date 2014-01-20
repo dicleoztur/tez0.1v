@@ -53,6 +53,40 @@ def fliptuplepairs(tuplelist):
     return flippedlist
                     
 
+
+
+def initialize_dict(keys, val=0):
+    dct = {}
+    for key in keys:
+        dct[key] = val
+    return dct
+
+
+def update_dct(updater, updatee):
+    for k,v in updater.iteritems():
+        updatee[k] += v
+
+
+# f = lambda x,thr : x > thr
+def filter_dict(dct, f, threshold):
+    newdct = {}
+    for k,v in dct.iteritems():
+        if f(v,threshold):
+            newdct[k] = v
+    return newdct 
+
+def filter_dict2(dct, threshold=0):
+    newdct = {}
+    for k,v in dct.iteritems():
+        if v > threshold:
+            newdct[k] = v
+    return newdct           
+
+
+
+numofprint = lambda lst,lstname : "num of "+lstname+" : "+str(len(lst))
+
+           
 if __name__ == "__main__":
     
     l1 = ['1087449_1', '1087449_5', '1087449_9', '1087449_22', '1087449_23']

@@ -1,5 +1,6 @@
-#Thu Dec 26 17:19:01 EET 2013
+#Sat Jan 04 16:00:32 EET 2014
 eclipse.preferences.version=1
+encoding//corpustats/annotationbuilder.py=utf-8
 encoding//corpustats/metacorpus.py=utf-8
 encoding//corpustats/metanewsanalysis.py=utf-8
 encoding//geziyakurdi/__init__.py=utf-8
@@ -19,4 +20,5 @@ encoding//sentimentfinding/cfdtest2.py=utf-8
 encoding//subjectivity/dataspaceV2.py=utf-8
 encoding//txtprocessor/comparenewsitemformats.py=utf-8
 encoding//txtprocessor/dateutils.py=utf-8
+encoding//txtprocessor/testencoding.py=utf-8
 encoding//txtprocessor/texter.py=utf-8

@@ -35,7 +35,17 @@ def gettagdata(content, tag):
     return data.strip()
 
 
+# returns the title and content of the newsitem located in filepath
+def get_news_article(filepath):
+    wholetext = texter.readtxtfile(filepath)
+    content = gettagdata(wholetext, "ttxtt")
+    title = gettagdata(wholetext, "title")
+    return title,content
+
+
+
 def getmetadata_fromtxt(filepath):
+    print filepath
     wholetext = texter.readtxtfile(filepath)
     
     newsid = gettagdata(wholetext, "id")
@@ -84,7 +94,7 @@ def recordnewsmetadata_crawltxt(corpuspath=metacorpus.rawcorpuspath, resourcefol
             for filename in filenames:
                 filepath = xp2 + os.sep + filename 
                 metadataline = getmetadata_fromtxt(filepath)    #metadataline = getmetadata_fromtxt(filepath+".txt") 
-                print csvfilepath               
+                #print csvfilepath               
                 IOtools.todisc_txt(metadataline, csvfilepath, mode="a")
         
             print "finished "+resource+"/"+cat

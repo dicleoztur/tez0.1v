@@ -26,6 +26,8 @@ stopwordsbase = keyinputpath+os.sep+"stopwords.txt"    #ilerde indislenebilir, s
 
 
 
+
+
 def readtxtfile(path):
     f = codecs.open(path,encoding='utf8')
     rawtext = f.read()

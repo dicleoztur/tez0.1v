@@ -11,9 +11,10 @@ import os
 
 # META COLLECTION
 
-#rawcorpuspath = "/home/dicle/Dicle/Tez/dataset/dataset_merged/newsitems/"   #"/home/dicle/Dicle/Tez/dataset/23Mart-enlarge/newsitems/"
+rawcorpuspath = "/home/dicle/Dicle/Tez/dataset/dataset_merged/newsitems/"   #"/home/dicle/Dicle/Tez/dataset/23Mart-enlarge/newsitems/"
 #rawcorpuspath = "/home/dicle/Dicle/Tez/corpusstats/samples/"
-rawcorpuspath = "/home/dicle/Dicle/Tez/dataset/dataset_diclecs/newsitems/"
+#rawcorpuspath = "/home/dicle/Dicle/Tez/dataset/dataset_diclecs/newsitems/"
+#rawcorpuspath = "/home/dicle/Dicle/Tez/dataset/recrawl_missing/newsitems/"
 
 xmlcorpuspath = "/home/dicle/Dicle/Tez/dataset/xmldataset/"
 
@@ -21,7 +22,7 @@ resources = ["cumhuriyet", "vakit", "radikal"]  # ["radikal", "cumhuriyet", "vak
 
 newsitemtags = ['id', 'link', 'resource', 'date', 'author', 'title', 'cat', 'ttxtt']
 
-fileext = ".txt"
+itemext = ".txt"
 
 
 
@@ -29,10 +30,10 @@ fileext = ".txt"
 
 
 # META STATS 
-statspath = "/home/dicle/Dicle/Tez/corpusstats/dataset_diclecs/" #/dateenhanced/"
+statspath = "/home/dicle/Dicle/Tez/corpusstats/dataset_merged"       #recrawled/" #/dateenhanced/"
 metafilename = "corpusbigstats.csv"
 prunedmetafilename = "corpusbigstats-pruned.csv"
-#metafilepath = statspath + os.sep + metafilename
+prunedmetafilepath = statspath + os.sep + metafilename
 statsheader = ["newsid", "resource", "category", "date", "numofwords", "numofchars"]
 csvsep = "\t"
 relevanttags = ["id", "resource", "cat", "date", "ttxtt"]
@@ -45,6 +46,8 @@ resourcecategorymap = {"cumhuriyet" : ["siyaset", "ekonomi", "dünya", "spor", "
                        "vakit" : ["siyaset", "ekonomi", "dünya", "spor", "güncel"]}
 
 '''
+
+'''
 resourcecategorymap = {"politics" : ["cumhuriyet-siyaset", "radikal-politika", "vakit-siyaset"],
                        "economy"  : ["cumhuriyet-ekonomi", "radikal-ekonomi", "vakit-ekonomi"],
                        "world"    : ["cumhuriyet-dunya", "radikal-dunya", "vakit-dunya"],
@@ -52,9 +55,30 @@ resourcecategorymap = {"politics" : ["cumhuriyet-siyaset", "radikal-politika", "
                        "turkey"   : ["cumhuriyet-turkiye", "radikal-turkiye", "vakit-guncel"]}
 
 
+'''
+
+# added sol
+resourcecategorymap = {"politics" : ["radikal_politika", "vakit_siyaset", "solhaber_devlet-ve-siyaset"],
+                       "economy"  : ["radikal_ekonomi", "vakit_ekonomi", "solhaber_ekonomi", "solhaber_sonuncu-kavga"],
+                       "world"    : ["radikal_dunya", "vakit_dunya", "solhaber_dunyadan", "solhaber_enternasyonal-gundem"],
+                       "turkey"   : ["radikal_turkiye", "vakit_guncel", "solhaber_kent-gundemleri", "solhaber_soldakiler"]}
 
 
 
+'''
+resourcecategorymap = {"politics" : ["radikal-politika", "vakit-siyaset", "solhaber-devlet-ve-siyaset"],
+                       "economy"  : ["radikal-ekonomi", "vakit-ekonomi", "solhaber-ekonomi", "solhaber-sonuncu-kavga"],
+                       "world"    : ["radikal-dunya", "vakit-dunya", "solhaber-dunyadan", "solhaber-enternasyonal-gundem"],
+                       "sports"   : ["radikal-spor", "vakit-spor"],
+                       "turkey"   : ["radikal-turkiye", "vakit-guncel", "solhaber-kent-gundemleri", "solhaber-soldakiler"]}
+
+'''
+
+
+# CORPUS INFO
+
+datestart = "2012-07-01"
+dateend = "2013-04-01"
 
 
 

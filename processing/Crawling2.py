@@ -13,6 +13,7 @@ import os
 import nltk
 import time
 import random
+import HTMLParser
 
 from NewsItem import NewsItem
 from NewsResource import NewsResource
@@ -34,6 +35,14 @@ cat_habervaktim = { 3:"guncel", 4:"siyaset", 5:"dunya", 19:"spor"} #, 11:"saglik
 
 #cat_cumhuriyet = {6:"siyaset", 7:"turkiye", 8:"dunya", 9:"ekonomi", 12:"kultur-sanat"} #, 17:"spor", 20:"yasam", 18:"bilim-teknik", 19:"saglik", 21:"cevre" }
 cat_cumhuriyet = {7:"turkiye" }
+
+cat_solhaber = {1: "devlet-ve-siyaset",
+                2: "enternasyonal-gundem",
+                3: "dunyadan",
+                4: "ekonomi",
+                5: "sonuncu-kavga",
+                6: "kent-gundemleri",
+                7: "soldakiler"}
 
 def extractitem(marker1, marker2, rawhtml):    #, printt = False):
     start = rawhtml.find(marker1)
@@ -182,12 +191,19 @@ def getnewsitem(resource, url, newsid):
     markerText2 = resource.markerText2
     text = extractitem(markerText1, markerText2, rawhtml)
     
-    print isinstance(text, str)," ",isinstance(text, unicode)," ",type(text)
+    #print isinstance(text, str)," ",isinstance(text, unicode)," ",type(text)
     text = IO.encodingToutf8(text, encoding)
-    print isinstance(text, str)," ",isinstance(text, unicode)," ",type(text)
-    text = nltk.clean_html(text)
+    #print isinstance(text, str)," ",isinstance(text, unicode)," ",type(text)
+    # text = nltk.clean_html(text)
     
     
+    # added due to the mixes in solhaber
+    try:
+        text = nltk.clean_html(text)
+    except HTMLParser.HTMLParseError as e:
+        tag = e.__str__().split(",")[0].split(":")[-1][2:-2]
+        text = text.replace(tag, "")
+        text = nltk.clean_html(text)
     
     '''
     print isinstance(text, str)," ",isinstance(text, unicode)," ",type(text)
@@ -199,12 +215,18 @@ def getnewsitem(resource, url, newsid):
     '''
     text = IO.replaceSpecialChars(text)
     
+    if resource.name == "solhaber":
+        date = date.split(",")[-1]
+        newsid = newsid.split("-")[-1]
+    
     return NewsItem(newsid, title, date, text, resource.name, author, url)
 
 
 def retrieveNewsIDs(resource, link): 
     print "retrieve idlist: "+link   
     content = readhtml(link)
+    
+    
     pattern1 = resource.idpatternInLink1
     pattern2 = resource.idpatternInLink2
         
@@ -213,6 +235,7 @@ def retrieveNewsIDs(resource, link):
     limit1 = resource.idlimit1
     limit2 = resource.idlimit2
     item = extractitem(limit1,limit2,content)
+   
     
     # extract ids
     list1 = re.findall(pattern1,item)
@@ -222,7 +245,7 @@ def retrieveNewsIDs(resource, link):
     for rawID in list1:
         newsid = re.findall(pattern2, rawID)[0]      #buradan bug cikabilir
         listfinal.append(newsid)
-        #print str(i)," - ",newsid
+        print str(i)," - ",newsid,"  raw:",rawID
         i = i+1
 
     listfinal = list(set(listfinal))
@@ -381,6 +404,85 @@ def crawl_radikal(start, numOfPages, categoryID):
     
 
 
+
+
+# Take date range as input
+def crawl_solhaber(start, numOfPages, categoryname):
+    
+    name = "solhaber"
+    rootlink_item = "http://haber.sol.org.tr/"+categoryname+"/"
+    # http://haber.sol.org.tr/sonuncu-kavga/tupras-ve-petrol-is-anlasti-petrol-iscisine-yuzde-82-zam-haberi-72210
+ 
+    rootlink_id = "http://haber.sol.org.tr/"+categoryname+"?page="
+    # http://haber.sol.org.tr/sonuncu-kavga?page=29
+    
+    
+    #item
+    markerTitle1 = '<h2 class="title node-title">'   #'<title>'
+    markerTitle2 = '</h2>'  #'</title>'
+    
+    
+    markerText1 = '<div class="makale-govde">'
+    markerText2 = '<div id="social-links">'   #'<div class="article_end"'
+    
+    markerDate1 = '<div class="node-date">'  #'<div class="text_size"><span>'   #'<p class="date">'
+    markerDate2 = '</div>'   #'</span><span>'  #'</p>'
+    
+    # authors in radikal are inextractable. names are inside text (div id=metin2..)
+    markerAuthor1 = '=MuhabirArama&amp;Keyword='
+    markerAuthor2 = '</a>'
+    
+    idlimit1 = '<div id="block-views-f_kategori_manset-block_2"'
+    idlimit2 = '<ul class="pager">'
+    
+    pattern1 = r'<a href=\".+[0-9]{3,9}\">'      #r";articleid=[0-9]{6,9}"    #r";ArticleID=[0-9]{6,9}"
+    pattern2 = r'\/[a-z0-9-]+-[0-9]{3,9}'
+        
+    resource1 = NewsResource(name, rootlink_id, rootlink_item, idlimit1, idlimit2, pattern1, pattern2, markerTitle1, markerTitle2, markerText1, markerText2, markerDate1, markerDate2, markerAuthor1, markerAuthor2)
+    #resource1.setEncoding('iso-8859-9')
+    
+    #start = 1
+    #numOfPages = 2
+    rooturl = resource1.rootlink_id
+    IDlist = []
+    for i in range(start,start+numOfPages):
+        url = rooturl + str(i)
+        IDlist = IDlist + retrieveNewsIDs_sol(resource1, url)
+    
+    IDlist = list(set(IDlist))
+    path = resource1.newsidpath+categoryname+"_newsIDs"+str(start)+"-"+str(numOfPages)+".txt"
+    IO.todisc_list(IDlist, path)
+    
+    crawlresourceItems(resource1, IDlist, categoryname)
+    
+
+# uses slug in links. so links should be retrieved differently.
+def retrieveNewsIDs_sol(resource, url):
+    content = readhtml(url)
+    
+    pattern1 = resource.idpatternInLink1
+    
+        
+    #preprocess to get the raw list of news links  
+    limit1 = resource.idlimit1
+    limit2 = resource.idlimit2
+    item = extractitem(limit1,limit2,content)
+   
+    
+    # extract ids
+    list1 = re.findall(pattern1,item) # this list is like ["<a href=/fhsjgf/sgj776767">", ]
+    #print list1
+    listfinal = []
+    i = 0
+    for rawID in list1:
+        newsid = rawID.split("/")[-1][:-2]
+        listfinal.append(newsid)
+        print str(i)," - ",newsid,"  raw:",rawID
+        i = i+1
+
+    listfinal = list(set(listfinal))
+    return listfinal
+    
 
 # Take date range as input
 def crawl_aydinlik(start, numOfPages, categoryID):
@@ -644,15 +746,28 @@ def main_radikal(start, numofpages):
         for cid,_ in cat_radikal.iteritems():
             crawl_radikal(start, numofpages, cid)
         start = start + numofpages 
+
+
+def main_solhaber(start, numofpages, r, catssol):
+    #catssol = ["enternasyonal-gundem"]
+    for _ in range(r):
+        for cname in catssol:
+            crawl_solhaber(start, numofpages, cname)
+        start = start + numofpages
         
 
 if __name__ == "__main__":
     
 
-    main_radikal(start=450, numofpages=5)
+    #main_radikal(start=450, numofpages=5)
    
     #main_vakit(start=100, numofpages=1)
 
+    main_solhaber(start=6, numofpages=10, r=1, catssol=["enternasyonal-gundem"])
+    main_solhaber(start=38, numofpages=10, r=4, catssol=["soldakiler"])
+    main_solhaber(start=79, numofpages=6, r=1, catssol=["soldakiler"])
+    
+    
     #main_aydinlik(start=0, numofpages=1)
     
     '''

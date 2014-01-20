@@ -8,7 +8,8 @@ Created on Aug 29, 2012
 import pandas as pd
 import codecs
 import os
-
+import json
+import csv
 
 countrypath = "/home/dicle/Dicle/Tez/dataset/country/"
 countries = ["syria","turkey"]
@@ -107,6 +108,18 @@ def todisc_list(path, lst, mode="w"):
         i = i+1
     f.close()
 
+
+def todisc_json(path, data, ind=4):
+    with open(path, "w") as outfile:
+        json.dump(data, outfile, sort_keys=True, indent=ind, ensure_ascii=False)
+
+
+def readjson(path):
+    with open(path) as infile:
+        data = json.load(infile)
+    return data
+        
+
 def wordletxt_todisc(words, wordweightvector, path):
     weightedwordlist = [word+"\t"+str(weight) for word, weight in zip(words, wordweightvector) if weight > 0.0]
     #todisc_list(path, weightedwordlist) 
@@ -140,7 +153,13 @@ def readtextlines(path):
 def printlist(lst):
     for w in lst:
         print w
-        
+
+
+# lst if a list of lists or tuples
+def tocsv_lst(lst, csvpath):
+    with open(csvpath, "w") as f:
+        csvwriter = csv.writer(f, delimiter="\t")
+        csvwriter.writerows(lst)       
 
 def readcsv(csvpath):
     return pd.read_csv(csvpath, sep="\t",header=0, encoding='utf-8')

@@ -47,7 +47,7 @@ def get_resourcecatmap(corpuspath=metacorpus.rawcorpuspath):
         
 
 # 1- get newsmetadata list
-def get_newsmetadata(corpuspath=metacorpus.rawcorpuspath, resources=None, 
+def get_newsmetadata(resources=None, corpuspath=metacorpus.rawcorpuspath,  
                      csvfilefolder=metacorpus.statspath, csvfilename=metacorpus.metafilename):
     if resources is None:
         resources = get_resourcecatmap(corpuspath).keys()
@@ -73,6 +73,44 @@ def prune_newsmetadata(rawcsvfolder=metacorpus.statspath, rawcsvname=metacorpus.
     
 
 
+# normalize category names and eliminate the rows with cats not occurring in our list
+def normalize_category_names(prunedcsvfolder=metacorpus.statspath, 
+                             prunedcsvname=metacorpus.prunedmetafilename,
+                             rescatmap=metacorpus.resourcecategorymap):
+    pruneddf = IOtools.readcsv(os.path.join(prunedcsvfolder, prunedcsvname))
+    originalcategorynames = pd.DataFrame(pruneddf.ix[:, "category"].values.copy(), columns=["originalcatname"])
+    #pruneddf["originalcatname"] = ""
+    #pruneddf["originalcatname"] = pruneddf["category"]
+    print originalcategorynames.loc[27500,0]
+    for canoniccatname, rescatlist in rescatmap.iteritems():
+        
+        for rescat in rescatlist:
+            items = rescat.split("_")
+            resourcename = items[0]
+            categoryname = items[1]
+            #print canoniccatname,": ",resourcename,categoryname
+            
+            #purepruneddf = pruneddf.loc[(pruneddf.category == categoryname) & (pruneddf.resource == resourcename),:]
+            #purepruneddf.loc[(purepruneddf.category == categoryname) & (purepruneddf.resource == resourcename), "category"] = canoniccatname
+    
+            #pruneddf.loc[(pruneddf.category == categoryname) & (pruneddf.resource == resourcename), "originalcatname"] = categoryname
+    
+            pruneddf.loc[(pruneddf.category == categoryname) & (pruneddf.resource == resourcename), "category"] = canoniccatname
+    
+    
+    pruneddf["originalcatname"] = originalcategorynames
+    print pruneddf.loc[27500, "originalcatname"]
+    
+    catnames = rescatmap.keys()
+    pruneddf = pruneddf[pruneddf.category.isin(catnames)]
+    
+    print pruneddf.values.shape
+    
+    #print pruneddf.loc[27500, "originalcatname"]
+    #IOtools.tocsv(pruneddf, os.path.join(prunedcsvfolder, "catnormalized_corpusstats.csv"))
+    print os.path.join(prunedcsvfolder, "catnormalized_corpusstats.csv")
+    IOtools.tocsv(pruneddf, os.path.join(prunedcsvfolder, "catnormalized_corpusstats.csv"))
+
 
 #J4
 # we are given a file containing resource 
@@ -95,7 +133,7 @@ def visualize_monthly_news_stats(csvfolder=metacorpus.statspath, csvname=metacor
     
     # daily news counts for categories
     cfddailycategorycount = ConditionalFreqDist((colldf.loc[i,"date"], 
-                                                 "-".join(map(lambda x : str(x).strip(), [colldf.loc[i, "resource"], colldf.loc[i, "category"]]))) for i in range(numoftexts)) 
+                                                 "_".join(map(lambda x : str(x).strip(), [colldf.loc[i, "resource"], colldf.loc[i, "category"]]))) for i in range(numoftexts)) 
     CFDhelpers.cfd2csv(cfddailycategorycount, csvfolder+os.sep+"cfddailycategorycount2.csv", ["date", "category", 'count'])
     cfdcatsdaycount = ConditionalFreqDist((category, date) for date in cfddailycategorycount.conditions() for category in list(cfddailycategorycount[date]))
 
@@ -202,11 +240,13 @@ def gettimerange(filesfolder):
 
 if __name__ == "__main__":
     
+    '''
     get_newsmetadata()
     prune_newsmetadata()
     visualize_monthly_news_stats()
+    '''
     
-    
+    normalize_category_names()
     
     
     '''

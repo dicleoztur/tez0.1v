@@ -133,6 +133,9 @@ def replaceSpecialChars(text):
     p8 = re.compile(r'&quot;')
     text = p8.sub('\'', text)
   
+    p9 = re.compile(r'&#039;')
+    text = p9.sub("'", text)
+    
     return text
     
 
