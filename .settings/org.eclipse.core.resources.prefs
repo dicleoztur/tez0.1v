@@ -1,8 +1,11 @@
-#Sat Jan 04 16:00:32 EET 2014
+#Wed Feb 05 01:41:03 EET 2014
 eclipse.preferences.version=1
-encoding//corpustats/annotationbuilder.py=utf-8
-encoding//corpustats/metacorpus.py=utf-8
-encoding//corpustats/metanewsanalysis.py=utf-8
+encoding//corpus/annotation_adder.py=utf-8
+encoding//corpus/annotationbuilder.py=utf-8
+encoding//corpus/annotationbuilder_old.py=utf-8
+encoding//corpus/goldsetbuilder.py=utf-8
+encoding//corpus/metacorpus.py=utf-8
+encoding//corpus/metanewsanalysis.py=utf-8
 encoding//geziyakurdi/__init__.py=utf-8
 encoding//geziyakurdi/articleanalysis.py=utf-8
 encoding//geziyakurdi/documentsimilarity.py=utf-8

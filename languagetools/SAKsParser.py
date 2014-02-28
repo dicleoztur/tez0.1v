@@ -218,12 +218,14 @@ def getcooccurrence_insent(word, wordsofsentence):
 
 if __name__ == "__main__":
     
-    s = "atağı"
+    s = 'aşağı'
     print parse_word(s)
     print lemmatizeword(s)
+    u, v, y, z = lemmatizeword(s)
+    print u, v, y, z
     
-    
-    
+    t = [(unicode('{'),8)]
+    print t
     
     '''
     fname = "tr_strongsubjective.txt"

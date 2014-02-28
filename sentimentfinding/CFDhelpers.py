@@ -26,21 +26,53 @@ def printCFD(cfd):
     print "# of conds: ",len(cfd.conditions())
 
 
-def cfd2csv(cfd, csvpath, colnames=[]):
+def cfd2csv(cfd, csvpath, colnames=[], indexkeep=False):
     matrix = []
     
+    indexnames = []
     for cond in cfd.conditions():
         for item in list(cfd[cond]):
             value = cfd[cond][item]
             matrix.append([cond, item, value])
+        indexnames.append(cond)
     
     matrix = np.array(matrix, dtype=object)
-    df = pd.DataFrame(matrix, columns=colnames)
+    if indexkeep:
+        df = pd.DataFrame(matrix, columns=colnames, index=indexnames)
+    else:
+        df = pd.DataFrame(matrix, columns=colnames)
     header = False
     if colnames:
         header = True
-    df.to_csv(csvpath, header=header, index=False, sep='\t', encoding='utf-8')
+    df.to_csv(csvpath, header=header, index=indexkeep, sep='\t', encoding='utf-8')
         
+
+
+def cfd_to_matrix(cfd, csvpath):
+    conds = cfd.conditions()
+    conditems = []
+    
+    for cond in conds:
+        for item in list(cfd[cond]):
+            conditems.append(item)
+    
+    conditems = list(set(conditems))
+    
+    numofrows = len(conds)
+    numofcols = len(conditems)
+    
+    matrix = np.empty((numofrows, numofcols))
+    
+    for i,cond in enumerate(conds):
+        for j,item in enumerate(conditems):
+            val = cfd[cond][item]
+            matrix[i,j] = val
+    
+    df = pd.DataFrame(matrix, index=conds, columns=conditems)
+    IOtools.tocsv(df, csvpath, keepindex=True)
+    return df
+
+
 
 def recordCFD(cfd, filename):
     outstr = "\n"

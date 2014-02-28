@@ -49,6 +49,13 @@ def getfoldernames_of_dir(path):
     return foldernames
 
 
+
+def folder_contains_file(folderpath, filename, removeextension=True):
+    existingfiles = getfilenames_of_dir(folderpath, removeextension)
+    return filename in existingfiles
+
+
+
 # merges all the txt files located in rootpath and records the new file in onefilepath
 def mergetxtfiles(rootpath, onefilepath):
     filenames = getfilenames_of_dir(rootpath, False)
@@ -57,6 +64,15 @@ def mergetxtfiles(rootpath, onefilepath):
         lines = readtextlines(rootpath + os.sep + fname)
         todisc_list(onefilepath, lines, mode="a")
         
+
+
+def readtextlines(path):
+    f = codecs.open(path,"r", encoding='utf8')
+    lines = f.readlines()
+    lines = [line.strip() for line in lines if not line.isspace()]
+    f.close()
+    return lines
+
 
 # ensures if the directory given on *f* exists. if not creates it.
 def ensure_dir(f):
@@ -143,12 +159,7 @@ def readtxtfile(path):
     f.close()
     return rawtext
 
-def readtextlines(path):
-    f = codecs.open(path,"r", encoding='utf8')
-    lines = f.readlines()
-    lines = [line.strip() for line in lines if not line.isspace()]
-    f.close()
-    return lines
+
 
 def printlist(lst):
     for w in lst:
@@ -161,13 +172,27 @@ def tocsv_lst(lst, csvpath):
         csvwriter = csv.writer(f, delimiter="\t")
         csvwriter.writerows(lst)       
 
-def readcsv(csvpath):
-    return pd.read_csv(csvpath, sep="\t",header=0, encoding='utf-8')
+def readcsv(csvpath, keepindex=False):
+    if keepindex:
+        df = pd.read_csv(csvpath, sep="\t", header=0, index_col=0, encoding='utf-8')
+    else:
+        df = pd.read_csv(csvpath, sep="\t",header=0, encoding='utf-8')
  
+    try:
+        df = df.drop('Unnamed: 1', 1)
+    except:
+        pass
+    return df
+    
+    
 
-def tocsv(df, csvpath):
-    df.to_csv(csvpath, index=False, header=True, sep="\t", encoding='utf-8')
+def tocsv(df, csvpath, keepindex=False):
+    df.to_csv(csvpath, index=keepindex, header=True, sep="\t", encoding='utf-8')
 
+
+'''def tocsv2(df, csvpath, keepindex=False):
+    df.to_csv(csvpath, index=keepindex, header=True, sep="\t")
+    '''
 
 if __name__ == "__main__":
     corpuspath = "/home/dicle/Dicle/Tez/dataset/dataset750/"

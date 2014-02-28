@@ -26,6 +26,8 @@ keywordrootpath = "/home/dicle/Dropbox/Tez/system/keywordbase/"
 
 subjectivitylexicon = keywordrootpath + os.sep + "tr_strongsubjective.txt"
 
+subjverbslist = keywordrootpath + os.sep + "tr_subjectiveverbs.txt"
+
 abstractnesslexicon = keywordrootpath + os.sep + "tr_abstractwords.txt"
 
 
@@ -59,6 +61,7 @@ class KeywordIndex:
 # returns sorted and smallcased list of keywords located at the given path
 def getkeywordlist(path):
     keywords = texter.readtextlines(path)
+    keywords = list(set(keywords))
     keywords = [w.lower() for w in keywords]
     keywords.sort()
     return keywords
@@ -111,8 +114,15 @@ def get_subjectivity_lexicon():
     subjectivewords = texter.readtextlines(subjectivitylexicon)
     return subjectivewords
 
+
+
+def get_subjective_verbs():
+    subjectiveverbs = getkeywordlist(subjverbslist)
+    return subjectiveverbs
+
+    
 def get_abstractwords():
-    abstractwords = texter.readtextlines(abstractnesslexicon)
+    abstractwords = getkeywordlist(abstractnesslexicon)
     newlist = []
     for w in abstractwords:
         if w.startswith("*") or w.startswith("-"):
@@ -121,7 +131,6 @@ def get_abstractwords():
             word = w
         newlist.append(word)
     
-    newlist = list(set(newlist))
     return newlist   
              
 

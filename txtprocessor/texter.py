@@ -11,6 +11,9 @@ import re
 import nltk
 from nltk.collocations import BigramCollocationFinder
 from nltk.metrics import BigramAssocMeasures
+import math
+import numpy as np
+import pandas as pd
 
 import dateutils, listutils
 #from sentimentfinding import keywordhandler
@@ -155,6 +158,13 @@ def remove_endmarker(wordlist, mark):
     return newlist
 
 
+def remove_endmarker_singleword(word, mark):
+    newword = word
+    if word.endswith(mark):
+        newword = word[: (-len(mark))]
+    return newword
+
+
 # inputtext is a concatenated string of words, keywordlist is a list of words.
 # returns true is inputtext contains at least one element of keywordlist
 def keywords_search(words, keywordlist):
@@ -188,7 +198,7 @@ def eliminatepunctuation(wordlist):
     return cleanwords
 '''
 
-def eliminatepunctuation(words, keepApostrophe = True):
+def eliminatepunctuation(words, keepApostrophe=True):
     newwords = []
     for s in words:
         pattern=re.compile("[^\w']", flags=re.UNICODE)
@@ -201,6 +211,84 @@ def eliminatepunctuation(words, keepApostrophe = True):
             
         newwords.append(clean.lower())
     return newwords
+
+
+def eliminatepunctuation_singleword(word, keepApostrophe=True):
+    pattern=re.compile("[^\w']", flags=re.UNICODE)
+    clean = pattern.sub('', word)
+    if keepApostrophe:
+        if clean.startswith("'") or clean.startswith("\""):
+            clean = clean[1:]
+        if clean.endswith("'") or clean.endswith("\""):
+            clean = clean[:-1]
+    return clean
+            
+ 
+ 
+def cleanword(word):
+    newword = word.encode('utf-8').lower().decode('utf-8')
+    
+    # puncutation eliminated
+    newword = eliminatepunctuation_singleword(newword)  
+    
+    # markers from morphological analyser eliminated
+    newword = remove_endmarker_singleword(newword, "(i)") 
+    newword = remove_endmarker_singleword(newword, "(ii)")
+    
+    # numeric strings eliminated
+    pattern = re.compile(r'^\d+$', flags=re.UNICODE)
+    #print "clean word ",newword,"  ",type(newword)
+    newword = pattern.sub('', newword)
+        
+    return newword  #.decode('utf-8').encode('utf-8')
+
+
+
+####   text metrics    ####
+def compute_tfidf_ondisc(freqdfpath, tfidfpath):
+    doctermfreq = pd.read_csv(freqdfpath, index_col=0, sep="\t")
+    numofdocs, numofwords = doctermfreq.shape
+    docs = doctermfreq.index.values.tolist()
+    terms = doctermfreq.columns.values.tolist()
+    
+    matrix = np.empty((numofdocs, numofwords))
+    
+    for i,doc in enumerate(docs):
+        for j,term in enumerate(terms):
+            tf = doctermfreq.iloc[i,j]
+            df = np.count_nonzero(doctermfreq.iloc[:, j])
+            
+            idf = math.log(float(numofdocs) / df)
+            matrix[i,j] = tf * idf
+    
+    matrix = np.around(matrix, decimals=4)
+    
+    doctermframe = pd.DataFrame(matrix, index = docs, columns=terms) 
+    #doctermframe.to_csv(self.rootpath+os.sep+"matrix"+"doctermTFIDF.csv")
+    doctermframe.to_csv(tfidfpath, sep="\t")
+    return doctermframe
+
+
+
+def compute_tfidf_online(doctermfreqdf):
+    numofdocs, numofwords = doctermfreqdf.shape
+    docs = doctermfreqdf.index.values.tolist()
+    terms = doctermfreqdf.columns.values.tolist()
+    
+    matrix = np.empty((numofdocs, numofwords))
+    
+    for i,doc in enumerate(docs):
+        for j,term in enumerate(terms):
+            tf = doctermfreqdf.iloc[i,j]
+            df = np.count_nonzero(doctermfreqdf.iloc[:, j])
+            
+            idf = math.log(float(numofdocs) / df)
+            matrix[i,j] = tf * idf
+    
+    matrix = np.around(matrix, decimals=4)
+    
+    tfidfdf = pd.DataFrame(matrix, index = docs, columns=terms) 
+    return tfidfdf
 
 
 
@@ -234,6 +322,11 @@ class CorpusReader:
 if __name__ == "__main__":
     
     
+    s = u"aa"
+    print s
+    print cleanword(s)
+    
+    '''
     path = "/home/dicle/Dicle/Tez/dataset/23Mart-enlarge/newsitems/radikal/turkiye/"
     
     corpus5 = CorpusReader(path)
@@ -269,7 +362,7 @@ if __name__ == "__main__":
     print trigramlist
     
     print bigramfinder.bigram_bywordlist(words)
-    
+    '''
     
     '''
     countrypath = "/home/dicle/Dicle/Tez/dataset/country/"

@@ -14,7 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from sentimentfinding import IOtools, plotter
 
 
-
+'''
 ####   text metrics    ####
 def compute_tfidf(freqdfpath, tfidfpath):
     doctermfreq = pd.read_csv(freqdfpath, index_col=0)
@@ -39,7 +39,7 @@ def compute_tfidf(freqdfpath, tfidfpath):
     doctermframe.to_csv(tfidfpath)
     return doctermframe
 
-
+'''
 
 
 
