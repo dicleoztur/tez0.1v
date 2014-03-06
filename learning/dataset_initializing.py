@@ -52,7 +52,7 @@ class Corpus:
         dateroots = []
         datePOStag = []
         
-        titleexclamation = [("newsid", "hasexclamation")]
+        titleexclamation = [("newsid", "title_exclamation")]
         
         textPOStag = []
         textroots = [] 
@@ -146,9 +146,9 @@ class Corpus:
 
 
 
-def read_corpus(annotationtype, validationtype, corpusrecordpath=metacorpus.learningdatapath, datasetsize=None):
+def read_corpus(annotationtype, taggertype, corpusrecordpath=metacorpus.learningdatapath, datasetsize=None):
     
-    membersfilepath = metacorpus.get_datasetmembers_file_path(annotationtype, validationtype)
+    membersfilepath = metacorpus.get_annotatedtexts_file_path(annotationtype, taggertype)
     membersdf = IOtools.readcsv(membersfilepath)
         
     newsids = membersdf.loc[:, "questionname"].values
@@ -161,15 +161,17 @@ def read_corpus(annotationtype, validationtype, corpusrecordpath=metacorpus.lear
         selection = membersdf[membersdf["questionname"].isin(newsids)]
     newsids = newsids.tolist()
 
-    corpusname = annotationtype+"-"+validationtype+"-N"+str(datasetsize)
-    corpusrecordpath = IOtools.ensure_dir(corpusrecordpath+os.sep+corpusname)
+    corpusname = annotationtype+"-"+taggertype+"-N"+str(datasetsize)
+    temppath = os.path.join(corpusrecordpath, annotationtype, str(datasetsize))
+    corpuspath = IOtools.ensure_dir(temppath)
       
     answersdf = pd.DataFrame(selection["answer"].values, index=selection["questionname"].values.tolist(), columns=["answer"])
-    IOtools.tocsv(answersdf, corpusrecordpath+os.sep+corpusname+"-answers.csv", keepindex=True)
+    answerspath = IOtools.ensure_dir(os.path.join(corpuspath, "labels"))
+    IOtools.tocsv(answersdf, answerspath+os.sep+taggertype+"-tagged.csv", keepindex=True)
     
-    corpus = Corpus(cname=corpusname, rootpath=corpusrecordpath)
+    corpus = Corpus(cname=corpusname, rootpath=corpuspath)
     corpus.extract_corpus_features(newsids)
-    return corpusrecordpath
+    return corpuspath
 
     
 
@@ -185,7 +187,7 @@ if __name__ == "__main__":
     annottype = "single"
     taggertype = "random"
     
-    recordpath = read_corpus(annotationtype=annottype, validationtype=validtype, datasetsize=50)
+    recordpath = read_corpus(annotationtype=annottype, taggertype=taggertype, datasetsize=100)
     print recordpath
     
     

@@ -7,11 +7,25 @@ Created on Feb 14, 2014
 import re
 import os
 
+from corpus import metacorpus
+from sentimentfinding import IOtools
 
 csvsep = "\t"
-rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning/experiments/"
-expscorepath = os.path.join(rootpath, "scores")
-expperfpath = os.path.join(rootpath, "performance") 
+
+#rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning/experiments/"
+exprfoldername = "experiments"
+scoresfoldername = "scores"
+perffoldername = "performance"
+experimentsrootpath = os.path.join(metacorpus.learningrootpath, exprfoldername)
+expscorepath = os.path.join(experimentsrootpath, scoresfoldername)
+expperfpath = os.path.join(experimentsrootpath, perffoldername) 
+
+# run at the top of learning
+def initialize_experiments_folder():
+    IOtools.ensure_dir(expscorepath)
+    IOtools.ensure_dir(expperfpath)
+    
+
 
 
 
@@ -23,6 +37,15 @@ scorefilename = "algorithms-scores"
 
 taggertypes = ["random", "user"]
 
+
+
+def get_rootscorepath():
+    return IOtools.ensure_dir(expscorepath)
+
+def get_rootperformancepath():
+    return IOtools.ensure_dir(expperfpath)
+
+'''
 # combNO_F_groupNO-featNO -> [csubjtfidf, tabscount,texcl,..]
 def decode_combcode(combcode):
     return
@@ -38,3 +61,8 @@ def parse_featsetname(featsetname):
     nclasses = featsetname.split('_NC-')[-1]
     
     return combcode, nclasses
+    '''
+    
+if __name__ == "__main__":
+    print taggertypes
+

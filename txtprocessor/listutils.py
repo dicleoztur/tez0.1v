@@ -112,32 +112,6 @@ def get_combination_matrix(m):
                 matrix[start : (fillrange+start), i] = j
     return matrix
     
-
-def featgroup_name_byindex(featmap, ind):
-    l = sorted(featmap.keys())
-    return l[ind]
-def featgroup_index_byname(featmap, name):
-    l = sorted(featmap.keys())
-    try:
-        return l.index(name)
-    except:
-        return -1
-
-
-def print_features(featmap, matrix):
-    print "features"
-    _, ncols = matrix.shape
-    
-    for i in range(ncols):
-        groupname = featgroup_name_byindex(featmap, i)
-        print groupname," : ",
-        groupvect = matrix[:, i]
-        for featno in groupvect:
-            if featno > -1:
-                print featmap[groupname][featno],", ",
-            else:
-                print "group excluded"
-        print
             
 
 def exclude_n_featuregroups(matrix, groupindices):

@@ -26,9 +26,9 @@ keywordrootpath = "/home/dicle/Dropbox/Tez/system/keywordbase/"
 
 subjectivitylexicon = keywordrootpath + os.sep + "tr_strongsubjective.txt"
 
-subjverbslist = keywordrootpath + os.sep + "tr_subjectiveverbs.txt"
+subjverbslist = keywordrootpath + os.sep + "tr_subjectiveverbs-change.txt"
 
-abstractnesslexicon = keywordrootpath + os.sep + "tr_abstractwords.txt"
+abstractnesslexicon = keywordrootpath + os.sep + "tr_abstractwords-change.txt"
 
 
 
@@ -131,7 +131,7 @@ def get_abstractwords():
             word = w
         newlist.append(word)
     
-    return newlist   
+    return list(set(newlist))   
              
 
 

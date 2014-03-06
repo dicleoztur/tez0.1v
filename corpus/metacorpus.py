@@ -96,17 +96,18 @@ dateend = "2013-04-01"
 
 
 # LEARNABLE SETS
-annotatedrootpath = "/home/dicle/Dicle/Tez/corpusstats/clusterable/"
+annotatedrootpath = "/home/dicle/Dicle/Tez/corpusstats/annotatedtexts/"   #clusterable/"
 annotateddbdumpcsvpath = "/home/dicle/Dicle/Tez/corpusstats/clusterable/rawdata/"
-userannotatedpath = annotatedrootpath + os.sep + "userannotated" +os.sep
+'''userannotatedpath = annotatedrootpath + os.sep + "userannotated" +os.sep
 randomannotatedpath = annotatedrootpath + os.sep + "randomannotated" +os.sep
 singleantcsv = "singleannotated.csv"
-doubleantcsv = "doubleannotated.csv"
+doubleantcsv = "doubleannotated.csv"'''
 annotationstatsfolder = "/home/dicle/Dicle/Tez/corpusstats/annotationstats/"
 
 
-annotationtypes = ["random", "user"]
-annotvalidationtypes = ["single", "double"]
+annotationtypes = ["single", "double"]
+taggertypes = ["random", "user"]
+
 
 subjectivity_label_values = {1: "Fazla taraflı / manipülatif",
                              2: "Taraflı",
@@ -115,22 +116,39 @@ subjectivity_label_values = {1: "Fazla taraflı / manipülatif",
 
 
 
+
 # EXPERIMENTS
-learningrootpath = "/home/dicle/Dicle/Tez/corpusstats/learning/"
+learningrootpath = "/home/dicle/Dicle/Tez/corpusstats/learning2/"
 learningdatapath = learningrootpath + os.sep + "data" + os.sep
 learningexperimentspath = learningrootpath + os.sep + "experiments" + os.sep
 
 
 
 
-def get_datasetmembers_folder_path(annottype):
-    folderpath = os.path.join(annotatedrootpath, annottype+"annotated")
+# utils
+labelfoldername = "labels"
+finaldatasetfoldername = "finaldatasets"
+def get_annotatedtexts_folder_path(annottype):
+    folderpath = os.path.join(annotatedrootpath, annottype)
     return folderpath # if asked to write, ensure_dir where asked
 
-def get_datasetmembers_file_path(annotationtype, validationtype):
-    filename = annotationtype + "-" + validationtype + "evals.csv"
-    filepath = get_datasetmembers_folder_path(annotationtype) + os.sep + filename
+
+def get_annotatedtexts_file_path(annotationtype, taggertype):
+    filename = annotationtype + "_" + taggertype + "-evals.csv"
+    filepath = get_annotatedtexts_folder_path(annotationtype) + os.sep + filename
     return filepath
+
+
+# combined feature datasets of one annottype(sing-doub) and setsize
+def get_datasets_path(annotationtype, setsize, datarootpath=learningdatapath):
+    path = os.path.join(datarootpath, annotationtype, setsize, finaldatasetfoldername)
+    return path
+
+
+def get_labels_path(annotationtype, setsize, datarootpath=learningdatapath):
+    path = os.path.join(datarootpath, annotationtype, setsize, labelfoldername)
+    return path
+
 
 
 

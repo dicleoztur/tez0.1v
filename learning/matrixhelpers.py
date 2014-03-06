@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import os
 
+
 from sentimentfinding import IOtools, keywordhandler
 
 # df is the matrix container dataframe
@@ -51,20 +52,30 @@ def search_words_in_df(df, words):
     indfwords.sort()
     wordsfiltereddf = pd.DataFrame(np.zeros((len(rows), len(words))), index=rows, columns=words)
 
+    print "df shape"
+    print " ",df.shape
+    print "filt shape"
+    print " ",wordsfiltereddf.shape
+
     for word in words:
         if word in indfwords:
-            print "FOUND: ",word
+            #print "FOUND: ",word
             wordvector = df.loc[:, word].values
+            #print word, "  shape ",wordvector.shape," v ",wordsfiltereddf.shape," vv ",wordsfiltereddf.loc[:, word].shape
+            #print wordvector
             wordsfiltereddf.loc[:, word] = wordvector
+            
         '''    
         else:
             wordsfiltereddf.loc[:, word] = np.zeros(len(rows))'''
     return wordsfiltereddf
 
 
-def get_featureword_doc_matrix(incsvpath, outcsvpath, words):
+def get_featureword_doc_matrix(incsvpath, outcsvpath, words, column_appendix=None):
     maindf = IOtools.readcsv(incsvpath, keepindex=True)
     filtereddf = search_words_in_df(maindf, words)
+    if column_appendix:
+        filtereddf = column_name_appendixing(filtereddf, appendix=column_appendix)
     IOtools.tocsv(filtereddf, outcsvpath, keepindex=True) 
 
 
@@ -92,7 +103,14 @@ def get_first_N_rows(scorecsvfile, N, conditioncols, ascend=False):
     return sorteddf.iloc[: N, :]
     
     
-       
+
+
+def column_name_appendixing(df, appendix):
+    column_replacement = {}
+    words = df.columns.values.tolist()
+    for w in words:
+        column_replacement[w] = w + "*" + appendix
+    return df.rename(columns=column_replacement)      
 
 if __name__ == "__main__":
     
@@ -119,10 +137,10 @@ if __name__ == "__main__":
     #get_featurewords_ratio(incsvpath=csvpath, outcsvpath=outfolder+"/absratio.csv", words=abswords, rationame="abstractness")
     
     outfolder = "/home/dicle/Dicle/Tez/corpusstats/learning/data/random-single-N5/titletfidfsearchtest/"
-    incsvpath = "/home/dicle/Dicle/Tez/corpusstats/learning/data/random-single-N5/rawfeatures/titletermTFIDF.csv"
+    incsvpath = "/home/dicle/Dicle/Tez/corpusstats/learning2/data/single/30/rawfeatures/contenttermTFIDF.csv"
     tdf = IOtools.readcsv(incsvpath, keepindex=True)
     tabstdf = search_words_in_df(tdf, abswords)
-    IOtools.tocsv(tabstdf, outfolder+"/testabs3.csv", True)
+    IOtools.tocsv(tabstdf, outfolder+"/testabs5.csv", True)
     
     print "len abs words",len(abswords)
     print tabstdf.shape
@@ -132,9 +150,7 @@ if __name__ == "__main__":
     print tabstdf.iloc[:,0]
     print
     print tabstdf.loc[:, cols[300]].values
-    
-    matrix = tabstdf.values
-    print np.count_nonzero(matrix)
+
     
           
     
