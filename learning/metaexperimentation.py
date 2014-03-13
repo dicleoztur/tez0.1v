@@ -11,6 +11,9 @@ from corpus import metacorpus
 from sentimentfinding import IOtools
 
 csvsep = "\t"
+intrafeatsep = "-"
+interfeatsep = "_"
+
 
 #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning/experiments/"
 exprfoldername = "experiments"
@@ -19,6 +22,9 @@ perffoldername = "performance"
 experimentsrootpath = os.path.join(metacorpus.learningrootpath, exprfoldername)
 expscorepath = os.path.join(experimentsrootpath, scoresfoldername)
 expperfpath = os.path.join(experimentsrootpath, perffoldername) 
+
+
+testpercentage = 10.0  # percentage of test set
 
 # run at the top of learning
 def initialize_experiments_folder():
@@ -45,6 +51,15 @@ def get_rootscorepath():
 def get_rootperformancepath():
     return IOtools.ensure_dir(expperfpath)
 
+def get_scorefilepath(scorefolder):
+    return os.path.join(scorefolder, scorefilename+".csv")
+
+def initialize_score_file(scorefolder):
+    scorefilepath = get_scorefilepath(scorefolder)
+    header = csvsep.join(scoresheader)
+    IOtools.todisc_txt(header, scorefilepath)  
+    
+    
 '''
 # combNO_F_groupNO-featNO -> [csubjtfidf, tabscount,texcl,..]
 def decode_combcode(combcode):

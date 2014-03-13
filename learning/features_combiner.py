@@ -692,6 +692,11 @@ class FeatureCombiner:
             #datamatrix['index'] = datamatrix.index
             #datamatrix = datamatrix.drop_duplicates(cols='index')
             #del datamatrix['index']
+            
+            # replace nan and inf cells !! no. work on matrix, not df. better do this change on learning
+            #datamatrix[np.isnan(datamatrix)] = 0
+            #datamatrix[np.isinf(datamatrix)] = 0
+            
             datamatrixpath = self.combinedfeaturesfolder + os.sep + filename + ".csv"
             IOtools.tocsv(datamatrix, datamatrixpath, keepindex=True)
             
@@ -723,7 +728,7 @@ if __name__ == "__main__":
     datarootpath = metacorpus.learningdatapath
     annotationtype = "single"   # to be a list
     tagger = "random"
-    setsize = 30
+    setsize = 50
     datasetpath = os.path.join(datarootpath, annotationtype, str(setsize))
     get_featurecombinatorial_datasets(datasetpath)
     

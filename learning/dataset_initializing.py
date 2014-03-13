@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 import random
 
+
+import arrange_N_classes
 from txtprocessor import texter
 from sentimentfinding import IOtools
 from sentimentfinding import keywordhandler
@@ -143,12 +145,11 @@ class Corpus:
 
 
 
-
-
+'''
 
 def read_corpus(annotationtype, taggertype, corpusrecordpath=metacorpus.learningdatapath, datasetsize=None):
     
-    membersfilepath = metacorpus.get_annotatedtexts_file_path(annotationtype, taggertype)
+    membersfilepath = metacorpus.get_annotatedtexts_file_path(annotationtype, taggertypes[0])
     membersdf = IOtools.readcsv(membersfilepath)
         
     newsids = membersdf.loc[:, "questionname"].values
@@ -161,19 +162,72 @@ def read_corpus(annotationtype, taggertype, corpusrecordpath=metacorpus.learning
         selection = membersdf[membersdf["questionname"].isin(newsids)]
     newsids = newsids.tolist()
 
-    corpusname = annotationtype+"-"+taggertype+"-N"+str(datasetsize)
+    corpusname = annotationtype+"-N"+str(datasetsize)  #annotationtype+"-"+taggertype+"-N"+str(datasetsize)
     temppath = os.path.join(corpusrecordpath, annotationtype, str(datasetsize))
     corpuspath = IOtools.ensure_dir(temppath)
       
     answersdf = pd.DataFrame(selection["answer"].values, index=selection["questionname"].values.tolist(), columns=["answer"])
     answerspath = IOtools.ensure_dir(os.path.join(corpuspath, "labels"))
-    IOtools.tocsv(answersdf, answerspath+os.sep+taggertype+"-tagged.csv", keepindex=True)
+    IOtools.tocsv(answersdf, answerspath+os.sep+taggertype+".csv", keepindex=True)
     
     corpus = Corpus(cname=corpusname, rootpath=corpuspath)
     corpus.extract_corpus_features(newsids)
     return corpuspath
 
+
+'''
+
+
+def read_corpus(annotationtype, taggertypes, corpusrecordpath=metacorpus.learningdatapath, datasetsize=None):
     
+    membersfilepath = metacorpus.get_annotatedtexts_file_path(annotationtype, taggertypes[0])
+    membersdf = IOtools.readcsv(membersfilepath)
+        
+    newsids = membersdf.loc[:, "questionname"].values
+    
+    if datasetsize is None:
+        datasetsize = len(newsids)
+    else:
+        newsids = newsids[np.random.choice(len(newsids), datasetsize)]
+    newsids = newsids.tolist()
+
+    corpusname = annotationtype+"-N"+str(datasetsize)  #annotationtype+"-"+taggertype+"-N"+str(datasetsize)
+    temppath = os.path.join(corpusrecordpath, annotationtype, str(datasetsize))
+    corpuspath = IOtools.ensure_dir(temppath)
+      
+    answerrootpath = IOtools.ensure_dir(os.path.join(corpuspath, "labels"))
+    extract_answers(annotationtype, taggertypes, newsids, answerrootpath)
+    
+    corpus = Corpus(cname=corpusname, rootpath=corpuspath)
+    corpus.extract_corpus_features(newsids)
+    return corpuspath
+
+
+
+def extract_answers(annotationtype, taggertypes, selectednewsids, answerrootpath):    
+    
+    for taggertype in taggertypes:
+        dfpath = metacorpus.get_annotatedtexts_file_path(annotationtype, taggertype)
+        df = IOtools.readcsv(dfpath)
+        selection = df[df["questionname"].isin(selectednewsids)]
+        
+        answersdf = pd.DataFrame(selection["answer"].values, index=selection["questionname"].values.tolist(), columns=["answer"])
+        
+        answervals = answersdf.answer.values.tolist()
+        has_unknown = 5 in answervals
+        print answervals
+        print type(answervals)
+        nclasses = len(list(set(answervals)))
+        
+        #answerrootpath = IOtools.ensure_dir(os.path.join(corpuspath, "labels"))
+        
+        originalanswersfolder = arrange_N_classes.ensure_nclass_dir(answerrootpath, nclasses)   # record original labels
+        originalanswerspath = os.path.join(originalanswersfolder, taggertype+".csv")
+        IOtools.tocsv(answersdf, originalanswerspath, keepindex=True)
+        
+        arrange_N_classes.get_nclass_variations(answerrootpath, taggertype, has_unknown, in_NC=nclasses)
+        
+        
 
 def read_corpus_from_file(membersfilepath, corpusname, recordpath):
     membersdf = IOtools.readcsv(membersfilepath)
@@ -185,9 +239,9 @@ def read_corpus_from_file(membersfilepath, corpusname, recordpath):
 if __name__ == "__main__":
         
     annottype = "single"
-    taggertype = "random"
+    taggertypes = ["random"]
     
-    recordpath = read_corpus(annotationtype=annottype, taggertype=taggertype, datasetsize=100)
+    recordpath = read_corpus(annotationtype=annottype, taggertypes=taggertypes, datasetsize=150)
     print recordpath
     
     

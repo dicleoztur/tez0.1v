@@ -5,18 +5,18 @@ Created on Mar 3, 2014
 '''
 
 from sklearn import cluster
-from sklearn import naive_bayes
+from sklearn.naive_bayes import MultinomialNB, GaussianNB
 from sklearn.svm import SVC
 from scipy import sparse
 from sklearn import metrics
 
-import random
+import math
 import pandas as pd
 import numpy as np
 import os
 
 
-import metaexperimentation, matrixhelpers
+import metaexperimentation, matrixhelpers, arrange_N_classes
 from corpus import metacorpus
 from sentimentfinding import IOtools
 
@@ -35,6 +35,13 @@ class LearningExperiment:
         self.experimentrootpath = recordpath
         self.scorefilepath = ""     
         
+        self.datapath = ""
+        self.labelpath = ""
+        
+        self.X = None
+        self.ylabels = None
+        self.labelnames = None
+        
         
     def train(self, datamatrix):
         return
@@ -42,25 +49,56 @@ class LearningExperiment:
     def test(self, originallabels):
         return
     
-    # for the experiments (many NCs and many testcases) of one dataset (featcomb)
-    def prepare_score_folder(self, scorepath, nclasses):
-        self.scorefilepath = scorepath + "_NC-" + str(nclasses)
-        # not sure if this should be done outside! yes it should be done outside.
+    
+        
+    def prepare_experiment(self, Xpath, ypath, erootpath, labelnames=None):
+        
+        self.datapath = Xpath
+        self.labelpath = ypath
+        
+        self.set_score_folder(erootpath)
+        
+        yvector = IOtools.readcsv(ypath, True)
+        self.ylabels = yvector.answer.values
+        yvals = self.ylabels.copy().tolist()
+        #print "y vals ",yvals
+        #print "vect ", self.ylabels
+        if labelnames is None:
+            labelnames = ["class "+str(i) for i in list(set(yvals))]
+
+        
+        datadf = IOtools.readcsv(Xpath, keepindex=True)
+        self.X = datadf.values   
+        self.X[np.isnan(self.X)] = 0
+        self.X[np.isinf(self.X)] = 0
     
     
-    def reportresults(self, ytrue, ypred, experimentname, labelnames):
-        precision = metrics.precision_score(ytrue, ypred)
-        recall = metrics.recall_score(ytrue, ypred)
-        f1score = metrics.f1_score(ytrue, ypred)
+    def set_score_folder(self, newpath):
+        self.experimentrootpath = newpath
+        self.scorefilepath = metaexperimentation.get_scorefilepath(self.experimentrootpath)
+        #self.initialize_scorefile()
+
+    
+    def reportresults(self, ytrue, ypred, experimentname):
+        
+        '''
+        precision, recall, f1score, _ = metrics.precision_recall_fscore_support(ytrue, ypred)     
+        print precision, recall, f1score
+        '''
+        #print ytrue
+        #print ypred     
+           
+        precision = metrics.precision_score(ytrue, ypred, pos_label=None, average="macro")
+        recall = metrics.recall_score(ytrue, ypred, pos_label=None, average="macro")
+        f1score = metrics.f1_score(ytrue, ypred, pos_label=None, average="macro")
         accuracy = metrics.accuracy_score(ytrue, ypred)
         
         scoreline = metaexperimentation.csvsep.join(map(lambda x : str(x), [experimentname, precision, recall, f1score, accuracy]))
         IOtools.todisc_txt("\n"+scoreline, self.scorefilepath, mode="a")
         
-        selfscorereportpath = os.path.join(self.experimentrootpath, experimentname+".txt")   
-        
-        scorereportstr = metrics.classification_report(ytrue, ypred, target_names=labelnames)
-        IOtools.todisc_txt(scorereportstr, selfscorereportpath)
+        modelscorereportpath = os.path.join(self.experimentrootpath, experimentname+".txt")   
+        scorereportstr = metrics.classification_report(ytrue, ypred, target_names=self.labelnames)
+        IOtools.todisc_txt(scorereportstr, modelscorereportpath)
         
 
 class SVM(LearningExperiment):
@@ -81,38 +119,67 @@ class SVM(LearningExperiment):
         self.degrees = range(2, 6)
 
     
-    def apply_algorithms(self, scorefilepath, labelnames=None):
+    def apply_algorithms(self, nclasses):
         
-        yvals = self.ylabels.copy().tolist()
-        print "y vals ",yvals
-        if labelnames is None:
-            labelnames = ["cluster "+str(i) for i in list(set(yvals))]
-        
-        nclasses = 3    # we will change it
-        datadf = IOtools.readcsv(self.Xpath, keepindex=True)
-        X = datadf.values
+        nrows, _ = self.X.shape
+        ntest = int(math.ceil(nrows * (metaexperimentation.testpercentage / 100))) 
+        print "NTEST ",ntest,nrows
+        Xtrain, Xtest = self.X[:-ntest, :], self.X[-ntest:, :]      
+        ytrain, ytest = self.ylabels[:-ntest], self.ylabels[-ntest:] 
         
         
+        print "apply svm"   
         for k in self.kernels:
             for c in self.penalty:
                 for d in self.degrees:
                      
                     clsf = SVC(kernel=k, C=c, degree=d)
-                    modelname = "_MT-"+clsf.__class__.__name__ +"_k-"+k+"_C-"+str(c)+"_d-"+str(d)
-                    experimentname = modelname + "_nc-" + str(nclasses)
-                    clsf.fit(X, self.ylabels)
+                    modelname = "_MT-"+self.methodname+"_alg-"+clsf.__class__.__name__ +"_k-"+k+"_C-"+str(c)+"_d-"+str(d)
+                    #experimentname = modelname + "_nc-" + str(nclasses)
                     
-                    print modelname
-                    ytrue, ypred = self.ylabels, clsf.predict(X)
-                    self.reportresults(ytrue, ypred, experimentname, scorefilepath, labelnames)
+                    '''print ytrain,ytrain.shape
+                    print list(set(ytrain.tolist()))'''
+                    
+                    clsf.fit(Xtrain, ytrain)
+                    
+                    print "...",modelname
+                    ytrue, ypred = ytest, clsf.predict(Xtest)
+                    self.reportresults(ytrue, ypred, modelname)
         
+
+class NaiveBayes(LearningExperiment):
+    
+    methodname = "classification"
+    models = []
+    
+    def __init__(self, erootpath):  
+        LearningExperiment.__init__(self, erootpath)
+        self.models = []
+    
+    def apply_algorithms(self, nclasses):
         
+        nrows, _ = self.X.shape
+        ntest = int(math.ceil(nrows * (metaexperimentation.testpercentage / 100))) 
+        Xtrain, Xtest = self.X[:-ntest, :], self.X[-ntest:, :]      
+        ytrain, ytest = self.ylabels[:-ntest], self.ylabels[-ntest:] 
+        
+        multinomialnb = MultinomialNB()
+        gaussiannb = GaussianNB()
+        self.models = [multinomialnb, gaussiannb]
+        
+        print "apply naive bayes"
+        for clsf in self.models:
+            
+            modelname = "_MT-"+self.methodname+"_alg-"+clsf.__class__.__name__ 
+            clsf.fit(Xtrain, ytrain)
+            
+            print "...",modelname
+            ytrue, ypred = ytest, clsf.predict(Xtest)
+            self.reportresults(ytrue, ypred, modelname)
          
+             
 
 class Clustering(LearningExperiment):
-       
-    Xpath = ""
-    ylabels = None
     
     models = []
     methodname = "clustering"
@@ -125,52 +192,30 @@ class Clustering(LearningExperiment):
         self.methodname = self.__class__.__name__
     
     
-    def apply_algorithms(self, scorefilepath, labelnames=None):
+    def apply_algorithms(self, nclusters):
         
-        yvals = self.ylabels.copy().tolist()
-        print "y vals ",yvals
-        if labelnames is None:
-            labelnames = ["cluster "+str(i) for i in list(set(yvals))]
-        
-        nclusters = 3    # we will change it
         kmeans = cluster.KMeans(n_clusters=nclusters)
-        spectral = cluster.SpectralClustering(n_clusters=nclusters)
-        self.models.append(kmeans)
-        self.models.append(spectral)
-        
-        datadf = IOtools.readcsv(self.Xpath, keepindex=True)
-        X = datadf.values
-        
-        print "y sh ",self.ylabels.shape
-        print "X ",X[0]
-        
+        #spectral = cluster.SpectralClustering(n_clusters=nclusters)
+        # SPECTRAL CAUSED 'not positive definite matrix' ERROR. TOO STRICT.
+        self.models = [kmeans] #, spectral]
+
+    
         print "apply clustering"
+        print len(self.models)
+        i = 0
         for model in self.models:
         
             modelname = model.__class__.__name__
-            experimentname = "_MT-"+self.methodname+"_alg-"+modelname+"_nc-"+str(nclusters)
+            experimentname = "_MT-"+self.methodname+"_alg-"+modelname   #+"_nc-"+str(nclusters)
             
             print "...",modelname
             
-            ytrue, ypred = self.ylabels, model.fit_predict(X)
+            #print "shape ", self.X.shape, type(nclusters)
+            ytrue, ypred = self.ylabels, model.fit_predict(self.X)
             
-            self.reportresults(ytrue, ypred, experimentname, scorefilepath, labelnames)
-            '''
-            precision = metrics.precision_score(ytrue, ypred)
-            recall = metrics.recall_score(ytrue, ypred)
-            f1score = metrics.f1_score(ytrue, ypred)
-            accuracy = metrics.accuracy_score(ytrue, ypred)
-            
-            scoreline = metaexperimentation.csvsep.join([experimentname, precision, recall, f1score, accuracy])
-            IOtools.todisc_txt(scoreline, scorefilepath, mode="a")
-            
-            selfscorereportpath = os.path.join(self.experimentrootpath, experimentname)            
-            if labelnames is None:
-                labelnames = ["cluster "+str(i) for i in list(set(self.ylabels))]
-            scorereportstr = metrics.classification_report(ytrue, ypred, target_names=labelnames)
-            IOtools.todisc_txt(selfscorereportpath, scorereportstr)
-            '''
-
+            self.reportresults(ytrue, ypred, experimentname)
+            print "CLSTR ",i
+            i = i + 1
 
 
 class Experimentation:
@@ -189,11 +234,7 @@ class Experimentation:
         self.initialize_scorefile()
     
     
-    
-    def initialize_scorefile(self):
-        header = metaexperimentation.csvsep.join(metaexperimentation.scoresheader)
-        IOtools.todisc_txt(header, self.scorefilepath)
-    
+   
     
     def prepare_data(self, taggingtype="random"):
         print "preparing data"
@@ -235,14 +276,18 @@ def conduct_experiments2(resultspath):
 
 def conduct_experiments(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath):
     annottypes = ["single"]
-    setsizes = ["30"]
+    setsizes = ["150"]
+    taggertypes = ["random"]
     numofcombs = 5
     
+    #nclasses = arrange_N_classes.nclasses   # [4,5]
+    
     #models = []
-    svmclassifier = SVM()
-    clusterer = Clustering()
+    svmclassifier = SVM("")
+    clusterer = Clustering("")
+    nbclassifier = NaiveBayes("")
     #nbclassifier = MultinomialNB(outrootpath)
-    models = [svmclassifier, clusterer]
+    models = [svmclassifier, nbclassifier, clusterer]
     
     
     for annotationtype in annottypes:
@@ -255,10 +300,38 @@ def conduct_experiments(inrootpath=metacorpus.learningdatapath, outrootpath=meta
             
             datasetspath = metacorpus.get_datasets_path(annotationtype, setsize)  # finaldatasets
             labelspath = metacorpus.get_labels_path(annotationtype, setsize)
+            nclasses = IOtools.getfoldernames_of_dir(labelspath)
+                      
             combfilenames = IOtools.getfilenames_of_dir(datasetspath)
             combfilenames = combfilenames[:numofcombs]
+            
             for combfile in combfilenames:
+            
                 Xpath = os.path.join(datasetspath, combfile + ".csv")
+                sp3 = IOtools.ensure_dir(os.path.join(sp2, combfile))
+                
+                for nclass in nclasses:   # count it on labelspath not nclasses
+                    
+                    #nclabelspath = arrange_N_classes.nclass_label_folder(labelspath, nc)  # get folder path containing nc-grouped labels
+                    nclabelspath = os.path.join(labelspath, nclass)
+                    nc = nclass.split(metaexperimentation.intrafeatsep)[-1]
+                    nc = int(nc)
+                    sp4 = IOtools.ensure_dir(os.path.join(sp3, nclass)) #"NC-"+str(nc)))
+                    
+                    for taggertype in taggertypes:
+                        
+                        rootscorespath = IOtools.ensure_dir(os.path.join(sp4, taggertype))
+                        metaexperimentation.initialize_score_file(rootscorespath)
+                        ylabelspath = os.path.join(nclabelspath, taggertype+".csv")
+                        
+                        for model in models:
+                            
+                            #labelnames = metacorpus.get_label_names()
+                            model.prepare_experiment(Xpath, ylabelspath, rootscorespath, labelnames=None)
+                            model.apply_algorithms(nc)
+                
+                
+                '''
                 ylabelfiles = IOtools.getfilenames_of_dir(labelspath)
                 
                 scorespath = os.path.join(sp2, combfile)
@@ -266,10 +339,7 @@ def conduct_experiments(inrootpath=metacorpus.learningdatapath, outrootpath=meta
                 # makedirs at each step! don't try creating inner-folders over. OK done. 
                 for ylabelfile in ylabelfiles:
                     ylabelpath = os.path.join(labelspath, ylabelfile)
-                    for model in models:
-                        
-                        labelnames = metacorpus.get_label_names()
-                        model.apply_algorithms(Xpath, ylabelpath, scorespath, labelnames)
+                '''    
     
     
             
@@ -294,9 +364,9 @@ def evaluate_performance(resultspath):
 
 # per datasetname  (random/size)
 def shell():
-    resultspath = metaexperimentation.rootpath + "/test-N5/"
-    conduct_experiments(resultspath)
-    evaluate_performance(resultspath)
+    #resultspath = metaexperimentation.rootpath + "/test-N5/"
+    conduct_experiments()
+    #evaluate_performance(resultspath)
    
    
 if __name__ == "__main__":
