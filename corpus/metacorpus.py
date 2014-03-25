@@ -115,6 +115,15 @@ subjectivity_label_values = {1: "Fazla taraflı / manipülatif",
                              4: "Tamamen tarafsız"}
 
 
+def encode_subjectivity_labels(literallabel):
+    literal2value = {"Fazla taraflı / Manipülatif" : 1,
+                                 "Taraflı / Subjektif" : 2,
+                                 "Tarafsız denebilir" : 3,
+                                 "Tamamen tarafsız / Tamamen objektif" : 4,
+                                 "Karar veremedim / Belirsiz" : 5}
+    return literal2value[literallabel.encode("utf8")]
+    
+
 
 
 # EXPERIMENTS

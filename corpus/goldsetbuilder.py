@@ -14,6 +14,12 @@ from sentimentfinding import IOtools
 import metacorpus
 
 
+
+def arrange_evaluations_file(infilename, outfilename, folderpath):
+    incsvpath = ""
+    indf = IOtools.readcsv(incsvpath)
+
+
 # extracts two sets from the user annotated db dumped data, doubleevals and singleevals 
 def extract_user_annotated_set(pathtodbdump):
     return
