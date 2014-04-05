@@ -18,7 +18,7 @@ class PerformanceEvaluator:
     def __init__(self, expspath=metaexperimentation.experimentsrootpath):
         self.experimentspath = expspath
         self.resultspath = os.path.join(self.experimentspath, "performance")
-        self.N = 15   # ranking number
+        self.N = 50   # ranking number
         #self.metricname = basemetric
     
     def best_score_per_annottype(self, metricname, scorepath=metaexperimentation.expscorepath):

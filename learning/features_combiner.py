@@ -192,7 +192,10 @@ class title_adverbcount(FeatureExtractor):
         outcsvpath = self.recordpath
         
         postagdf = IOtools.readcsv(incsvpath, keepindex=True)
-        adv_count_vect = postagdf.loc[:, "ADV"].values
+        try:
+            adv_count_vect = postagdf.loc[:, "ADV"].values
+        except:
+            adv_count_vect = np.zeros(postagdf.shape[0])
         countdf = pd.DataFrame(adv_count_vect, index=postagdf.index.values.tolist(), columns=[self.fname])
         IOtools.tocsv(countdf, outcsvpath, keepindex=True)
         
@@ -726,9 +729,9 @@ def get_featurecombinatorial_datasets(datasetpath):
 if __name__ == "__main__":
   
     datarootpath = metacorpus.learningdatapath
-    annotationtype = "single"   # to be a list
-    tagger = "random"
-    setsize = 50
+    annotationtype = "double"   # to be a list
+    tagger = "user"
+    setsize = 150
     datasetpath = os.path.join(datarootpath, annotationtype, str(setsize))
     get_featurecombinatorial_datasets(datasetpath)
     

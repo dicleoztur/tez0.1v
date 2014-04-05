@@ -22,11 +22,22 @@ def feature_ratio_over_df(df, tags1, tags2, rationame):
     for item in pointnames:
         numeratorval = 0
         for tag1 in tags1:
-            numeratorval += df.loc[item, tag1]
+            tagoccr = 0
+            try:
+                tagoccr = df.loc[item, tag1]
+            except:
+                tagoccr = 0
+            numeratorval += tagoccr
         
         denominatorval = 0
         for tag2 in tags2:
-            denominatorval += df.loc[item, tag2]
+            tagoccr = 0
+            try:
+                tagoccr = df.loc[item, tag2]
+            except:
+                tagoccr = 0
+            denominatorval += tagoccr
+            #denominatorval += df.loc[item, tag2]
         
         print tags1," / ",tags2," ratio ",item,"\n ",numeratorval," / ",denominatorval
         if denominatorval == 0:

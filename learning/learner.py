@@ -274,10 +274,11 @@ def conduct_experiments2(resultspath):
         
 
 
-def conduct_experiments(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath):
-    annottypes = ["single"]
+# made 3 on 5 April
+def conduct_experiments3(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath):
+    annottypes = ["double"]
     setsizes = ["150"]
-    taggertypes = ["random"]
+    taggertypes = ["user"]
     numofcombs = 5
     
     #nclasses = arrange_N_classes.nclasses   # [4,5]
@@ -341,7 +342,61 @@ def conduct_experiments(inrootpath=metacorpus.learningdatapath, outrootpath=meta
                     ylabelpath = os.path.join(labelspath, ylabelfile)
                 '''    
     
+def conduct_experiments(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath):
+    annottypes = ["double"]
+    setsizes = ["150"]
+    taggertypes = ["user"]
+    numofcombs = 5
     
+    #nclasses = arrange_N_classes.nclasses   # [4,5]
+    
+    #models = []
+    svmclassifier = SVM("")
+    clusterer = Clustering("")
+    nbclassifier = NaiveBayes("")
+    #nbclassifier = MultinomialNB(outrootpath)
+    models = [svmclassifier, nbclassifier, clusterer]
+    
+    
+    for annotationtype in annottypes:
+        
+        sp1 = IOtools.ensure_dir(os.path.join(outrootpath, annotationtype))
+        
+        for setsize in setsizes:
+            
+            sp2 = IOtools.ensure_dir(os.path.join(sp1, setsize))
+            
+            datasetspath = metacorpus.get_datasets_path(annotationtype, setsize)  # finaldatasets
+            labelspath = metacorpus.get_labels_path(annotationtype, setsize)
+            nclasses = IOtools.getfoldernames_of_dir(labelspath)
+                      
+            combfilenames = IOtools.getfilenames_of_dir(datasetspath)
+            combfilenames = combfilenames[:numofcombs]
+            
+            for combfile in combfilenames:
+            
+                Xpath = os.path.join(datasetspath, combfile + ".csv")
+                sp3 = IOtools.ensure_dir(os.path.join(sp2, combfile))
+                
+                for nclass in nclasses:   # count it on labelspath not nclasses
+                    
+                    #nclabelspath = arrange_N_classes.nclass_label_folder(labelspath, nc)  # get folder path containing nc-grouped labels
+                    nclabelspath = os.path.join(labelspath, nclass)
+                    nc = nclass.split(metaexperimentation.intrafeatsep)[-1]
+                    nc = int(nc)
+                    sp4 = IOtools.ensure_dir(os.path.join(sp3, nclass)) #"NC-"+str(nc)))
+                    
+                    for taggertype in taggertypes:
+                        
+                        rootscorespath = IOtools.ensure_dir(os.path.join(sp4, taggertype))
+                        metaexperimentation.initialize_score_file(rootscorespath)
+                        ylabelspath = os.path.join(nclabelspath, taggertype+".csv")
+                        
+                        for model in models:
+                            
+                            #labelnames = metacorpus.get_label_names()
+                            model.prepare_experiment(Xpath, ylabelspath, rootscorespath, labelnames=None)
+                            model.apply_algorithms(nc)    
             
 
 def evaluate_performance(resultspath):

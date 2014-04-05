@@ -22,8 +22,45 @@ def arrange_evaluations_file(infilename, outfilename, folderpath):
 
 # extracts two sets from the user annotated db dumped data, doubleevals and singleevals 
 def extract_user_annotated_set(pathtodbdump):
+    # done on the shell
     return
 
+
+
+# doubleannotatedcsv = (questionname, answer1, answer2, answer)
+# output two files: fullaggreed4class; halfaggreed2class
+def assign_annotator_aggreement(doubleannotated_path, doubleannot_filename):
+    csvpath = os.path.join(doubleannotated_path, doubleannot_filename)
+    doubleannotatedcsv = IOtools.readcsv(csvpath)
+    nrows, _ = doubleannotatedcsv.shape
+    
+    doubleannotated_full4class = doubleannotatedcsv.loc[:, ["questionname", "answer"]].copy()
+    doubleannotated_half2class = doubleannotatedcsv.loc[:, ["questionname", "answer"]].copy()
+    
+    # get full agreed and half agreed annotations:
+    for i in range(nrows):
+        answer1 = doubleannotatedcsv.loc[i, "answer1"]
+        answer2 = doubleannotatedcsv.loc[i, "answer2"]
+    
+        if answer1 == answer2:
+            doubleannotated_full4class.loc[i, "answer"] = answer1
+        if answer1 in [1,2] and answer2 in [1,2]:   # elif?
+            doubleannotated_half2class.loc[i, "answer"] = 12
+        elif answer1 in [3,4] and answer2 in [3,4]:
+            doubleannotated_half2class.loc[i, "answer"] = 34
+    
+    
+    # filtrate non-agreeing rows:
+    doubleannotated_full4class = doubleannotated_full4class[doubleannotated_full4class["answer"] > 0]
+    csvpath1 = os.path.join(doubleannotated_path, "doubleannotated_fullagr4class.csv")
+    IOtools.tocsv(doubleannotated_full4class, csvpath1)
+    
+    doubleannotated_half2class = doubleannotated_half2class[doubleannotated_half2class["answer"] > 0]
+    csvpath2 = os.path.join(doubleannotated_path, "doubleannotated_halfagr2class.csv")
+    IOtools.tocsv(doubleannotated_half2class, csvpath2)
+    
+    
+    
 
 
 def get_randomly_annotated_set(incsvfilename, outcsvfilename,
@@ -55,6 +92,7 @@ def get_randomly_annotated_set(incsvfilename, outcsvfilename,
 
 if __name__ == "__main__":
     
+    '''
     # create randomly answered sets
     # for single annotated
     get_randomly_annotated_set(incsvfilename=metacorpus.singleantcsv, 
@@ -63,6 +101,15 @@ if __name__ == "__main__":
     #for double annotated
     get_randomly_annotated_set(incsvfilename=metacorpus.doubleantcsv, 
                                outcsvfilename="randomly-"+metacorpus.doubleantcsv)
+    '''
+    
+    # get agreement for final answers
+    doubleannotated_path = "/home/dicle/Dicle/Tez/corpusstats/clusterable/userannotated/"
+    doubleannot_filename = "doubleAnnotated700rows.csv"
+    assign_annotator_aggreement(doubleannotated_path, doubleannot_filename)
+    
+    
+    
     
     # measure interannotator agreement with various metrics
     

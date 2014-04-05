@@ -82,7 +82,7 @@ class Corpus:
                 
                 root = texter.cleanword(root)
                 if (len(root) > 0) or (not root.isspace()):
-                    print root,
+                    #print root,
                     textPOStag.append((newsid, literalPOS))
                     textroots.append((newsid, root))
                     textrootsWpostag.append((newsid, root+" Wpostag "+rootPOS))
@@ -238,10 +238,10 @@ def read_corpus_from_file(membersfilepath, corpusname, recordpath):
     
 if __name__ == "__main__":
         
-    annottype = "single"
-    taggertypes = ["random"]
+    annottype = "double"
+    taggertypes = ["user"]
     
-    recordpath = read_corpus(annotationtype=annottype, taggertypes=taggertypes, datasetsize=150)
+    recordpath = read_corpus(annotationtype=annottype, taggertypes=taggertypes, datasetsize=30)
     print recordpath
     
     

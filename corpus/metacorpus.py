@@ -98,15 +98,24 @@ dateend = "2013-04-01"
 # LEARNABLE SETS
 annotatedrootpath = "/home/dicle/Dicle/Tez/corpusstats/annotatedtexts/"   #clusterable/"
 annotateddbdumpcsvpath = "/home/dicle/Dicle/Tez/corpusstats/clusterable/rawdata/"
-'''userannotatedpath = annotatedrootpath + os.sep + "userannotated" +os.sep
+
+'''##
+userannotatedpath = annotatedrootpath + os.sep + "userannotated" +os.sep
 randomannotatedpath = annotatedrootpath + os.sep + "randomannotated" +os.sep
 singleantcsv = "singleannotated.csv"
-doubleantcsv = "doubleannotated.csv"'''
+doubleantcsv = "doubleannotated.csv"
+##'''
+
 annotationstatsfolder = "/home/dicle/Dicle/Tez/corpusstats/annotationstats/"
 
 
 annotationtypes = ["single", "double"]
 taggertypes = ["random", "user"]
+
+
+
+subjectivity_basic_labels = {12: "subjective",
+                             34: "objective"}
 
 
 subjectivity_label_values = {1: "Fazla taraflı / manipülatif",
