@@ -8,12 +8,14 @@ Created on Feb 12, 2014
 import pandas as pd
 import os
 import numpy as np
+import operator
+import pickle
 
 import matrixhelpers, utils
 from sentimentfinding import IOtools, keywordhandler
 from txtprocessor import listutils
 from corpus import metacorpus
-
+import dataset_initializing2
     
 
 
@@ -72,7 +74,7 @@ class content_adverbratio(FeatureExtractor):
         rationame = self.fname
         matrixhelpers.get_featuretags_ratio(incsvpath, outcsvpath, numeratortags, denominatortags, rationame)
         self.iscalculated = True
-
+        
   
        
 class content_adjectiveratio(FeatureExtractor):
@@ -570,10 +572,11 @@ class FeatureCombiner:
     extendedfeaturesfolder = ""
     combinedfeaturesfolder = ""
     
-    def __init__(self, extendedfeatsfolder, combinedfeatsfolder):
+    def __init__(self, extendedfeatsfolder, combinedfeatsfolder, datasetrootpath):
         self.inmatrixfolder = ""   # we can later attribute it to an abstract outer class
         self.extendedfeaturesfolder = extendedfeatsfolder   # input
         self.combinedfeaturesfolder = combinedfeatsfolder   # output
+        self.datasetrootpath = datasetrootpath
         
         self.featuremap = {}
         self.get_feature_map()
@@ -643,12 +646,29 @@ class FeatureCombiner:
         
         self.featuremap["texcl"] = [texcl]
         
-        '''  needs a sort func in classes !
+        '''  needs a sort func in classes ! '''
         for k in self.featuremap.keys():
-            self.featuremap[k].sort()
-        '''
+            print "b ",self.featuremap[k]
+            self.featuremap[k].sort(key=operator.attrgetter("fname"))
+            print "a ",self.featuremap[k]
+            print 
+            
         
+        # featuremap to str and disc
+        self.tostr_featuremap()
     
+    
+    def tostr_featuremap(self, record=True):
+        s = ""
+        for j,k in enumerate(sorted(self.featuremap.keys())):
+            line = str(j)+". "+k + " : "
+            for i,metric in enumerate(self.featuremap[k]):
+                line += str(i)+"- "+str(metric)+", "
+            s += line + "\n"
+        
+        if record:
+            IOtools.todisc_txt(s, os.path.join(self.datasetrootpath, "featuremap.txt"))
+        return s
     
     def exclude_none(self):
         featurecombsmatrix = listutils.get_combination_matrix(self.featuremap)
@@ -703,6 +723,11 @@ class FeatureCombiner:
             datamatrixpath = self.combinedfeaturesfolder + os.sep + filename + ".csv"
             IOtools.tocsv(datamatrix, datamatrixpath, keepindex=True)
             
+            # record comb name decoding
+            decodednamesfolder = IOtools.ensure_dir(os.path.join(self.datasetrootpath, metacorpus.decodedcombnamesfoldername))
+            decodedname = utils.tostr_decoded_combcode(filename, self.featuremap)
+            IOtools.todisc_txt(decodedname, os.path.join(decodednamesfolder, filename+".txt"))
+    
     
     def featuremapping_to_datamatrix(self):
         filename = ""
@@ -718,23 +743,38 @@ def get_featurecombinatorial_datasets(datasetpath):
     extendeddatafolder = IOtools.ensure_dir(os.path.join(datasetpath, "extendedfeatures"))
     finaldatasetfolder = IOtools.ensure_dir(os.path.join(datasetpath, "finaldatasets"))
     
-    feature_extending = FeaturesPlexer(rawdatafolder, extendeddatafolder)
-    feature_extending.process_features()
+    #feature_extending = FeaturesPlexer(rawdatafolder, extendeddatafolder)
+    #feature_extending.process_features()
     
-    feature_combiner = FeatureCombiner(extendeddatafolder, finaldatasetfolder)
+    feature_combiner = FeatureCombiner(extendeddatafolder, finaldatasetfolder, datasetpath)
     feature_combiner.exclude_none()
     
 
 
-if __name__ == "__main__":
-  
+def shell():
     datarootpath = metacorpus.learningdatapath
-    annotationtype = "double"   # to be a list
-    tagger = "user"
-    setsize = 150
-    datasetpath = os.path.join(datarootpath, annotationtype, str(setsize))
-    get_featurecombinatorial_datasets(datasetpath)
+    annotationtypes = ["single"]   # to be a list
+
+    for annotationtype in annotationtypes:
+        datasetpath = os.path.join(datarootpath, annotationtype)
+        get_featurecombinatorial_datasets(datasetpath)    
+
+if __name__ == "__main__":
     
+    shell()
+    
+    
+    
+    '''
+    datarootpath = metacorpus.learningdatapath
+    annotationtype = "single"   # to be a list
+    #tagger = "user"
+    #setsize = 150
+    
+    dataset_initializing2.read_corpus(annotationtype)
+    datasetpath = os.path.join(datarootpath, annotationtype)
+    get_featurecombinatorial_datasets(datasetpath)
+    '''
     
     
     '''

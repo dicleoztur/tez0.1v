@@ -149,7 +149,7 @@ def wordletxt_todisc(words, wordweightvector, path):
     
 
 def todisc_freqdist(outpath, fdist):
-    weightedlist = [item+"\t"+str(fdist[item]) for item in list(fdist)]
+    weightedlist = [str(item)+"\t"+str(fdist[item]) for item in list(fdist)]
     todisc_list(outpath, weightedlist)
     
 

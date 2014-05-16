@@ -19,7 +19,7 @@ interfeatsep = "_"
 exprfoldername = "experiments"
 scoresfoldername = "scores"
 perffoldername = "performance"
-experimentsrootpath = os.path.join(metacorpus.learningrootpath, exprfoldername)
+experimentsrootpath = os.path.join(metacorpus.learningrootpath2, exprfoldername)
 expscorepath = os.path.join(experimentsrootpath, scoresfoldername)
 expperfpath = os.path.join(experimentsrootpath, perffoldername) 
 
@@ -36,8 +36,13 @@ def initialize_experiments_folder():
 
 
 scoresheader = ["algorithm", "precision", "recall", "fscore", "accuracy"]
+'''
 performanceheader = ["annottype", "size", "tagger", "nclasses", "algorithm", "featureset", 
                      "precision", "recall", "fscore", "accuracy"]
+'''
+performanceheader = ["annottype", "labelunion", "algorithm", "featureset", 
+                     "precision", "recall", "fscore", "accuracy"]
+
 
 scorefilename = "algorithms-scores"
 

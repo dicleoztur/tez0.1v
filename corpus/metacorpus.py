@@ -30,7 +30,7 @@ textfileextension = ".txt"
 
 
 # META STATS 
-statspath = "/home/dicle/Dicle/Tez/corpusstats/dataset_merged"       #recrawled/" #/dateenhanced/"
+statspath = "/home/dicle/Dicle/Tez/corpusstats/dataset_merged/"       #recrawled/" #/dateenhanced/"
 metafilename = "corpusbigstats.csv"
 prunedmetafilename = "corpusbigstats-pruned.csv"
 prunedmetafilepath = statspath + os.sep + metafilename
@@ -112,7 +112,7 @@ annotationstatsfolder = "/home/dicle/Dicle/Tez/corpusstats/annotationstats/"
 annotationtypes = ["single", "double"]
 taggertypes = ["random", "user"]
 
-
+agreementtypes = ["fullagr", "halfagr"]
 
 subjectivity_basic_labels = {12: "subjective",
                              34: "objective"}
@@ -135,17 +135,23 @@ def encode_subjectivity_labels(literallabel):
 
 
 
+
+
 # EXPERIMENTS
-learningrootpath = "/home/dicle/Dicle/Tez/corpusstats/learning2/"
+learningrootpath2 = "/home/dicle/Dicle/Tez/corpusstats/learning8/"
+learningrootpath = "/home/dicle/Dicle/Tez/corpusstats/learning4/"
 learningdatapath = learningrootpath + os.sep + "data" + os.sep
 learningexperimentspath = learningrootpath + os.sep + "experiments" + os.sep
 
 
-
+# FEATURES
+decodedcombnamesfoldername = "decodednames" 
 
 # utils
 labelfoldername = "labels"
+labelsfilename = "labels"
 finaldatasetfoldername = "finaldatasets"
+'''
 def get_annotatedtexts_folder_path(annottype):
     folderpath = os.path.join(annotatedrootpath, annottype)
     return folderpath # if asked to write, ensure_dir where asked
@@ -155,16 +161,31 @@ def get_annotatedtexts_file_path(annotationtype, taggertype):
     filename = annotationtype + "_" + taggertype + "-evals.csv"
     filepath = get_annotatedtexts_folder_path(annotationtype) + os.sep + filename
     return filepath
+'''
+# revise as there is agr type now on.
+def get_annotatedtexts_folder_path(annottype):
+    folderpath = os.path.join(annotatedrootpath, annottype)
+    return folderpath # if asked to write, ensure_dir where asked
+
+# agreementype = [fullagr, halfagr]. full applies only to double annotated type.
+def get_annotatedtexts_file_path(annotationtype, agreementype):
+    if annotationtype == "single" and agreementype == "fullagr":
+        return None
+    filename = annotationtype + "_" + agreementype + "-evals.csv"
+    filepath = get_annotatedtexts_folder_path(annotationtype) + os.sep + filename
+    return filepath
+
+
 
 
 # combined feature datasets of one annottype(sing-doub) and setsize
-def get_datasets_path(annotationtype, setsize, datarootpath=learningdatapath):
-    path = os.path.join(datarootpath, annotationtype, setsize, finaldatasetfoldername)
+def get_datasets_path(annotationtype, datarootpath=learningdatapath):
+    path = os.path.join(datarootpath, annotationtype, finaldatasetfoldername)
     return path
 
 
-def get_labels_path(annotationtype, setsize, datarootpath=learningdatapath):
-    path = os.path.join(datarootpath, annotationtype, setsize, labelfoldername)
+def get_labels_path(annotationtype, datarootpath=learningdatapath):
+    path = os.path.join(datarootpath, annotationtype, labelfoldername)
     return path
 
 

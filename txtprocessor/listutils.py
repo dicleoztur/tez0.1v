@@ -26,6 +26,13 @@ def getintersectionoflists(list1, list2):
     return intersection
 
 
+def listdiff(list1, list2):
+    difflist = []
+    for i1 in list1:
+        if i1 not in list2:
+            difflist.append(i1)
+    return difflist
+
 # separates list elements "w1 w2" to [w1,w2] and inserts them back to the list
 def separateitemsaswords(inlist):
     temp = []
@@ -101,14 +108,14 @@ def get_combination_matrix(m):
     for i,items in enumerate(ls):
         lengths = [len(x) for x in ls[i+1:]] or [1]
         fillrange = reduce(lambda x,y : x*y, lengths) 
-        print "col ",i,"  fillrange: ",fillrange," lenself: ",len(items)
+        #print "col ",i,"  fillrange: ",fillrange," lenself: ",len(items)
         nrepeat = int(ncombs / (fillrange * len(items)))
-        print "nrepeat ",nrepeat 
+        #print "nrepeat ",nrepeat 
         for z in range(nrepeat):
             for j,_ in enumerate(items):
                 start = j*fillrange + z*(len(items)*fillrange)
-                print "\t z: ",z," start",start
-                print
+                #print "\t z: ",z," start",start
+                #print
                 matrix[start : (fillrange+start), i] = j
     return matrix
     
@@ -121,6 +128,12 @@ def exclude_n_featuregroups(matrix, groupindices):
 
 
 numofprint = lambda lst,lstname : "num of "+lstname+" : "+str(len(lst))
+
+
+
+# array is of type np
+def select_random_elements(array, numofelements):
+    return array[np.random.random_integers(0, len(array)-1, numofelements)]
 
            
 if __name__ == "__main__":

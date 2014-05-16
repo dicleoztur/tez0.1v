@@ -176,6 +176,70 @@ def visualize_monthly_news_stats(csvfolder=metacorpus.statspath, csvname=metacor
 
 
 
+# adapt to new category mapping. we may not need this! 
+
+def visualize_monthly_news_stats2(csvfolder=metacorpus.statspath, csvname=metacorpus.prunedmetafilename,
+                                 imgoutpath=metacorpus.imgfolder,
+                                 rescatmap=metacorpus.resourcecategorymap2):
+    colldf = IOtools.readcsv(csvfolder+os.sep+csvname)
+    
+    numoftexts, _ = colldf.values.shape
+    
+    
+    # daily news counts for resources
+    cfddailyresourcecount = ConditionalFreqDist((colldf.loc[i,"date"], colldf.loc[i,"resource"].strip()) for i in range(numoftexts))
+    CFDhelpers.cfd2csv(cfddailyresourcecount, csvfolder+os.sep+"cfddailyresourcecount2.csv", colnames=['date','resource','count'])
+    #cfdresourcesdaycount = ConditionalFreqDist((resource, day) for day in cfddailyresourcecount.conditions() for resource in list(cfddailyresourcecount[day]))
+    
+    
+    # daily news counts for categories
+    cfddailycategorycount = ConditionalFreqDist((colldf.loc[i,"date"], 
+                                                 "_".join(map(lambda x : str(x).strip(), [colldf.loc[i, "resource"], colldf.loc[i, "category"]]))) for i in range(numoftexts)) 
+    CFDhelpers.cfd2csv(cfddailycategorycount, csvfolder+os.sep+"cfddailycategorycount2.csv", ["date", "category", 'count'])
+    #cfdcatsdaycount = ConditionalFreqDist((category, date) for date in cfddailycategorycount.conditions() for category in list(cfddailycategorycount[date]))
+
+    
+    
+    # visualize monthly   --- assuming the dates are of the form yyyy-mm-dd -we did it so while recording
+    
+    cfdmonthlyresourcecount = ConditionalFreqDist((colldf.loc[i,"date"][:-3], colldf.loc[i,"resource"].strip()) for i in range(numoftexts))
+    CFDhelpers.cfd2csv(cfdmonthlyresourcecount, csvfolder+os.sep+"cfdmonthlyresourcecount.csv", colnames=['month','resource','count'])
+    #cfdresourcesmonthcount = ConditionalFreqDist((resource, month) for month in cfdmonthlyresourcecount.conditions() for resource in list(cfdmonthlyresourcecount[month]))
+    imgpath = IOtools.ensure_dir(os.path.join(imgoutpath, "resourcebasednewscount"))
+    visualize_monthly_cfd(cfd=cfdmonthlyresourcecount, figuretitle="Monthly news count for each resource", ylabel="news published", imgoutpath=imgpath)
+
+
+
+    
+    cfdmonthlycategorycount = ConditionalFreqDist((colldf.loc[i,"date"][:-3], 
+                                                   "-".join(map(lambda x : str(x).strip(), [colldf.loc[i, "resource"], colldf.loc[i, "category"]]))) 
+                                                  for i in range(numoftexts)) 
+    CFDhelpers.cfd2csv(cfdmonthlycategorycount, csvfolder+os.sep+"cfdmonthlycategorycount.csv", ["month", "category", 'count'])
+    #cfdcatsmonthcount = ConditionalFreqDist((category, month) for month in cfdmonthlycategorycount.conditions() for category in list(cfdmonthlycategorycount[month]))
+    
+    imgpath = IOtools.ensure_dir(os.path.join(imgoutpath, "categorybasednewscount"))
+    for canoniccatname, rescatnamedct in rescatmap.iteritems():
+        monthresourcepairs = []
+        
+        for resourcename, origcats in rescatnamedct.iteritems(): 
+        
+            for origcatname in origcats:
+                #resourcename = rescat.split("-")[0]
+                rescat = "-".join([resourcename, origcatname])
+                for month in cfdmonthlycategorycount.conditions():
+                    numofoccurrences = cfdmonthlycategorycount[month][rescat]
+                    #print resourcename," had ",numofoccurrences," times texts in :",rescat," during ",month
+                    for i in range(numofoccurrences):
+                        monthresourcepairs.append((month, resourcename))
+                        
+        cfdmonthlyresourcecount_percat = ConditionalFreqDist(monthresourcepairs) 
+            
+        print canoniccatname,resourcename," * ",rescat," : ",len(cfdmonthlyresourcecount_percat.conditions()),"  ",cfdmonthlyresourcecount_percat.N()
+        figuretitle = "Monthly news count of each resource over category "+canoniccatname.upper()
+        visualize_monthly_cfd(cfdmonthlyresourcecount_percat, figuretitle, ylabel="news published", imgoutpath=imgpath)
+   
+
+
 
 def visualize_monthly_cfd(cfd, figuretitle, ylabel, imgoutpath):
     cfd_reverse = ConditionalFreqDist((entity, month) for month in cfd.conditions() for entity in list(cfd[month]))
@@ -240,13 +304,15 @@ def gettimerange(filesfolder):
 
 if __name__ == "__main__":
     
-    '''
+    
     get_newsmetadata()
     prune_newsmetadata()
+    visualize_monthly_news_stats2()
+    '''
     visualize_monthly_news_stats()
     '''
     
-    normalize_category_names()
+    #normalize_category_names()
     
     
     '''
