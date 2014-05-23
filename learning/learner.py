@@ -82,7 +82,7 @@ class LearningExperiment:
                                              "classifiermodel":classifiermodel,
                                              "modelname":modelname})
         p.start()
-        p.join(2400)   # quit after 40 min.s
+        p.join(200)   # quit after 10 min.s
         if p.is_alive():
             print "Quit ",modelname
             IOtools.todisc_txt("", self.experimentrootpath+os.sep+"Quit-"+modelname+".txt")
@@ -231,6 +231,7 @@ class SVM(LearningExperiment):
         if self.standardize:
             Xtrain = preprocessing.scale(Xtrain)
             Xtest = preprocessing.scale(Xtest)
+        
         
         # train on sigmoid kernel
         clsf = SVC(kernel="sigmoid")
@@ -531,7 +532,7 @@ def conduct_experiments2(resultspath):
 # made 3 on 5 April
 # made x on 11 May
 def conduct_experimentsx(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath, scale=False):
-    annottypes = ["double"]  #, "single"]
+    annottypes = ["single"]  #, "single"]
     # simdilik sadece double 0-5 tamam. 5'ten devam. 7 Mayis 11:10
     
     #setsizes = ["150"]
@@ -557,25 +558,34 @@ def conduct_experimentsx(inrootpath=metacorpus.learningdatapath, outrootpath=met
         
         agreementtypes= IOtools.getfoldernames_of_dir(labelspath)
                   
-        '''  select random '''
+        '''  select random 
         combfilenames = IOtools.getfilenames_of_dir(datasetspath)
         combfilenames.sort()
         #combfilenames = combfilenames[:numofcombs]  #make this random
         # random select:
         #combfilenames = listutils.select_random_elements(np.array(combfilenames, dtype=object), numofcombs).tolist() 
+        '''
         
-        ''' process k to m '''
+        ''' process k to m 
         k = 40
         m = 130
         combfilenames = combfilenames[k:m]
         processedcombs = IOtools.getfoldernames_of_dir(sp1)
         combfilenames = [comb for comb in combfilenames if comb not in processedcombs]
+        '''
         
         ''' select previously learned '''
         '''combfilenames = IOtools.getfoldernames_of_dir(os.path.join(metacorpus.learningrootpath, 
                                                                  "experiments", 
                                                                  "scores",
                                                                  annotationtype))'''
+        ''' select pregiven combs  '''
+        #     for only SINGLE: 
+        combfilenames = [#"comb1040_F_0-1_1-0_2-0_3-0_4-1_5-0_6-0_7-0_8-0",
+                         #"comb2145_F_0-2_1-0_2-0_3-1_4-2_5-0_6-0_7-0_8-1",
+                         #"comb2925_F_0-2_1-1_2-1_3-1_4-2_5-1_6-1_7-0_8-1",
+                         "comb975_F_0-0_1-1_2-1_3-3_4-0_5-1_6-1_7-0_8-3"]
+        
             
         for i,combfile in enumerate(combfilenames):
         
@@ -612,8 +622,8 @@ def conduct_experimentsx(inrootpath=metacorpus.learningdatapath, outrootpath=met
 
 
 
-# made 3 on 11 May to add featuregroup hierarchy
-def conduct_experiments3(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath, scale=False):
+# made 3 on 17 May 
+def conduct_experimentsy(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath, scale=False):
     annottypes = ["single"]  #, "single"]
     # simdilik sadece double 0-5 tamam. 5'ten devam. 7 Mayis 11:10
     
@@ -697,7 +707,182 @@ def conduct_experiments3(inrootpath=metacorpus.learningdatapath, outrootpath=met
                     print "############  ",combfile,"  ",str(i)  
                
                
+
+# made 3 on 17 May to take only 8 features
+def conduct_experiments3(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath, scale=False):
+    annottypes = ["single"]
+    # simdilik sadece double 0-5 tamam. 5'ten devam. 7 Mayis 11:10
+    
+    #setsizes = ["150"]
+    #taggertypes = ["user"]
+    numofcombs = 15
+    
+    #nclasses = arrange_N_classes.nclasses   # [4,5]
+    
+    #models = []
+    svmclassifier = SVM("", standardize=True)
+    clusterer = Clustering("")
+    nbclassifier = NaiveBayes("", normalize=True)
+    #nbclassifier = MultinomialNB(outrootpath)
+    models = [nbclassifier, clusterer, svmclassifier]
+    
+    
+    for annotationtype in annottypes:
+        
+        sp1 = IOtools.ensure_dir(os.path.join(outrootpath, annotationtype))
+        
+        print "sp1 ",sp1
+         
+        datasetspath = metacorpus.get_datasets_path(annotationtype)  # finaldatasets
+        labelspath = metacorpus.get_labels_path(annotationtype)
+        
+        agreementtypes= IOtools.getfoldernames_of_dir(labelspath)
+                  
+    
+        feature_metric_comb_lists = utils.get_relevant_featuregroupings()  # { featureclasses : [combcode]}
+                 
+        for featureclass, combfilenames in feature_metric_comb_lists.iteritems():
+            
+            sp2 = IOtools.ensure_dir(os.path.join(sp1, featureclass))
+                            
+            print "metricname ",featureclass
+            print "b ",len(combfilenames)
+            
+            processedcombs = IOtools.getfoldernames_of_dir(sp2)
+            combfilenames = [comb for comb in combfilenames if comb not in processedcombs]
+            print "a ",len(combfilenames)
+            print "pr ",len(processedcombs),"  ",sp2
+            
+            
+            for i,combfile in enumerate(combfilenames):
+            
+                print "############  ",combfile,"  ",str(i)
+                Xpath = os.path.join(datasetspath, combfile + ".csv")
+                sp3 = IOtools.ensure_dir(os.path.join(sp2, combfile))
+                
+               
+                for agreementtype in agreementtypes:   # count it on labelspath not nclasses
+                    
+                    lp1 = os.path.join(labelspath, agreementtype)
+                    labelunions = IOtools.getfoldernames_of_dir(lp1)
+                    
+                    for labelunion in labelunions:
+                        
+                        lp2 = os.path.join(lp1, labelunion)
+                        
+                        labelitems = labelunion.split(metaexperimentation.interfeatsep)
+                        unionname = labelitems[0]
+                        ncstr = labelitems[1]
+                        nc = ncstr.split(metaexperimentation.intrafeatsep)[-1]
+                        nc = int(nc)
+                                       
+                        rootscorespath = IOtools.ensure_dir(os.path.join(sp3, unionname))
+                        metaexperimentation.initialize_score_file(rootscorespath)
+                        ylabelspath = os.path.join(lp2, metacorpus.labelsfilename+".csv")
+                                        
+                        for model in models:
+                            print Xpath
+                            #labelnames = metacorpus.get_label_names()
+                            model.prepare_experiment(Xpath, ylabelspath, rootscorespath, labelnames=None)
+                            model.apply_algorithms(nc)
+                    
+                print "############  ",combfile,"  ",str(i)  
+               
+ 
+
+# made on 22 May
+def conduct_experiments_onefeatureexcluded(inrootpath="/home/dicle/Dicle/Tez/corpusstats/learningdata_excludeone/data/", 
+                                           outrootpath="/home/dicle/Dicle/Tez/corpusstats/learningdata_excludeone/experiments/", 
+                                           scale=False):
+    annottypes = ["single", "double"]
+    # simdilik sadece double 0-5 tamam. 5'ten devam. 7 Mayis 11:10
+    
+    #setsizes = ["150"]
+    #taggertypes = ["user"]
+    
+    
+    #nclasses = arrange_N_classes.nclasses   # [4,5]
+    
+    #models = []
+    svmclassifier = SVM("", standardize=True)
+    #clusterer = Clustering("")
+    nbclassifier = NaiveBayes("", normalize=True)
+    #nbclassifier = MultinomialNB(outrootpath)
+    models = [nbclassifier, svmclassifier]  # clusterer
+    
+    
+    exclusiontypes = IOtools.getfoldernames_of_dir(inrootpath)
+    
+    for exclusionname in exclusiontypes:
+    
+        sp0 = IOtools.ensure_dir(os.path.join(outrootpath, exclusionname))
+    
+        for annotationtype in annottypes:
+            
+            sp1 = IOtools.ensure_dir(os.path.join(sp0, annotationtype))
+            
+            print "sp1 ",sp1
+             
+            datasetrootpath = os.path.join(inrootpath, exclusionname, annotationtype)  # excluded-datasets
+            labelspath = metacorpus.get_labels_path(annotationtype)
+            
+            agreementtypes= IOtools.getfoldernames_of_dir(labelspath)
+                      
+            featureclasses = IOtools.getfoldernames_of_dir(datasetrootpath)
+            #feature_metric_comb_lists = utils.get_relevant_featuregroupings()  # { featureclasses : [combcode]}
                      
+            for featureclass in featureclasses:
+                
+                sp2 = IOtools.ensure_dir(os.path.join(sp1, featureclass))
+                
+                dp0 = os.path.join(datasetrootpath, featureclass)
+                combfilenames = IOtools.getfilenames_of_dir(dp0, removeextension=True)
+                              
+                print "metricname ",featureclass
+                print "b ",len(combfilenames)
+                
+                processedcombs = IOtools.getfoldernames_of_dir(sp2)
+                combfilenames = [comb for comb in combfilenames if comb not in processedcombs]
+                print "a ",len(combfilenames)
+                print "pr ",len(processedcombs),"  ",sp2
+                
+                
+                for i,combfile in enumerate(combfilenames):
+                
+                    print "############  ",combfile,"  ",str(i)
+                    Xpath = os.path.join(dp0, combfile + ".csv")
+                    sp3 = IOtools.ensure_dir(os.path.join(sp2, combfile))
+                    
+                   
+                    for agreementtype in agreementtypes:   # count it on labelspath not nclasses
+                        
+                        lp1 = os.path.join(labelspath, agreementtype)
+                        labelunions = IOtools.getfoldernames_of_dir(lp1)
+                        
+                        for labelunion in labelunions:
+                            
+                            lp2 = os.path.join(lp1, labelunion)
+                            
+                            labelitems = labelunion.split(metaexperimentation.interfeatsep)
+                            unionname = labelitems[0]
+                            ncstr = labelitems[1]
+                            nc = ncstr.split(metaexperimentation.intrafeatsep)[-1]
+                            nc = int(nc)
+                                           
+                            rootscorespath = IOtools.ensure_dir(os.path.join(sp3, unionname))
+                            metaexperimentation.initialize_score_file(rootscorespath)
+                            ylabelspath = os.path.join(lp2, metacorpus.labelsfilename+".csv")
+                                            
+                            for model in models:
+                                print Xpath
+                                #labelnames = metacorpus.get_label_names()
+                                model.prepare_experiment(Xpath, ylabelspath, rootscorespath, labelnames=None)
+                                model.apply_algorithms(nc)
+                        
+                    print "############  ",combfile,"  ",str(i)  
+
+
+                   
     
 def conduct_experiments(inrootpath=metacorpus.learningdatapath, outrootpath=metaexperimentation.expscorepath, normalize=False):
     annottypes = ["double"]
@@ -779,13 +964,13 @@ def shell():
     #resultspath = metaexperimentation.rootpath + "/test-N5/"
     
     #conduct_cross_validation()
-    conduct_experiments3(scale=True)
+    #conduct_experiments3(scale=True)
     #evaluate_performance(resultspath)
-   
+    conduct_experiments_onefeatureexcluded()
    
 if __name__ == "__main__":
     shell()
-    
+    #conduct_experiments_onefeatureexcluded()
     
     
     

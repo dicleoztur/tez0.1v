@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Created on Feb 24, 2014
 
@@ -8,6 +9,7 @@ Created on Feb 24, 2014
 import re
 import math
 import numpy as np
+import os
 
 import metaexperimentation
 from txtprocessor import listutils
@@ -124,6 +126,7 @@ def get_lexiconfeature_combs():
     return encode_selected_feature_measures(groups, measures)
 
 
+# returns the metric-mixed combs (512+64)
 def get_featuregroupings():
     featuremetric_combs = {}
     
@@ -137,6 +140,100 @@ def get_featuregroupings():
     featuremetric_combs["lexicon_metrics"] = encode_selected_feature_measures(groups, measures)
     
     return featuremetric_combs
+
+
+# returns the metric-fixed 8 combs
+def get_relevant_featuregroupings():
+    featuremetric_combs = {}
+    
+    featuremetric_combs["redef-rat_lex-pres"] = "2925"
+    featuremetric_combs["redef-rat_lex-cnt"] = "1820"
+    featuremetric_combs["redef-rat_lex-rat"] = "975"
+    featuremetric_combs["redef-rat_lex-tf"] = "4030"
+    
+    featuremetric_combs["redef-cnt_lex-pres"] = "2145"
+    featuremetric_combs["redef-cnt_lex-cnt"] = "1040" 
+    featuremetric_combs["redef-cnt_lex-rat"] = "195"
+    featuremetric_combs["redef-cnt_lex-tf"] = "3250"
+    
+    # get complete combcodes
+    featuremap = get_featuremap_sortedstr()
+    combmatrix = listutils.get_combination_matrix(featuremap)
+    for groupname, rowno in featuremetric_combs.iteritems():
+        rowno = int(rowno[-4:])
+        metricvaluelist = combmatrix[rowno,:].tolist()
+        combcode = encode_combname(metricvaluelist, rowno)
+        featuremetric_combs[groupname] = [combcode]
+        
+        #print rowno,"  :  ",metricvaluelist
+        
+        '''
+        rp = "/home/dicle/Dicle/Tez/corpusstats/learning9/experiments/scores/"
+        annots = ["double", "single"]
+        for a in annots:
+            p = os.path.join(rp, a, groupname)
+            IOtools.ensure_dir(p)
+        ''' 
+    
+    return featuremetric_combs
+
+
+# returns the metric-fixed 8 combs making -1 the indices given in the parameter
+def get_excluded_columns_combcodes(excludeindices):
+    featuremetric_combs = {}
+    
+    featuremetric_combs["redef-rat_lex-pres"] = "2925"
+    featuremetric_combs["redef-rat_lex-cnt"] = "1820"
+    featuremetric_combs["redef-rat_lex-rat"] = "975"
+    featuremetric_combs["redef-rat_lex-tf"] = "4030"
+    
+    featuremetric_combs["redef-cnt_lex-pres"] = "2145"
+    featuremetric_combs["redef-cnt_lex-cnt"] = "1040" 
+    featuremetric_combs["redef-cnt_lex-rat"] = "195"
+    featuremetric_combs["redef-cnt_lex-tf"] = "3250"
+    
+    # get complete combcodes
+    featuremap = get_featuremap_sortedstr()
+    combmatrix = listutils.get_combination_matrix(featuremap)
+    for groupname, rowno in featuremetric_combs.iteritems():
+        rowno = int(rowno[-4:])
+        metricvaluelist = combmatrix[rowno,:]
+        metricvaluelist[excludeindices] = -1
+        combcode = encode_combname(metricvaluelist, rowno)
+        combrowdct = {combcode : metricvaluelist.tolist()}
+        featuremetric_combs[groupname] = combrowdct
+        
+        #print rowno,"  :  ",metricvaluelist
+        
+        '''
+        rp = "/home/dicle/Dicle/Tez/corpusstats/learning9/experiments/scores/"
+        annots = ["double", "single"]
+        for a in annots:
+            p = os.path.join(rp, a, groupname)
+            IOtools.ensure_dir(p)
+        ''' 
+    
+    return featuremetric_combs
+
+
+
+
+def get_excluded_features_map():    
+    excludeindices = {"exclude-content" : [0, 1, 2, 3],
+                     "exclude-title" : [4, 5, 6, 7, 8],
+                     "exclude-abs" : [0, 4],
+                     "exclude-subj" : [3, 8],
+                     "exclude-adj" : [1, 5],
+                     "exclude-adv" : [2, 6],
+                     "exclude-exclm" : [7]} 
+    
+    exclrelevantindicesmap = listutils.initialize_dict(keys=excludeindices.keys(), val={})
+    for exclusionname in excludeindices.keys():
+        combcodemap = get_excluded_columns_combcodes(excludeindices[exclusionname])
+        exclrelevantindicesmap[exclusionname] = combcodemap
+    
+    return exclrelevantindicesmap    
+
 
 
 
@@ -193,6 +290,8 @@ def tostr_decoded_combcode(combcode, combitemsmap, classname=True):
 def encode_combname(combname, rowno):
     filename = "comb"+str(rowno)+"_F"
     for j,featno in enumerate(combname):
+        if featno == -1:
+            featno = "X"
         filename += "_"+str(j)+"-"+str(featno)   # filename = combNO_F_GROUPNO-FEATNO
     return filename
 
@@ -250,6 +349,12 @@ def get_ntest(nrows):
 
 if __name__ == "__main__":
     
+    #fdict = get_relevant_featuregroupings()
+    fdict = get_excluded_features_map()
+    for k in sorted(fdict.keys()):
+        print k, " : ", fdict[k]
+    
+    
     '''
     s = "comb0_F_0-0_1-0_2-0_3-0_4-0"  #_5-0_6-0_7-0_8-0"
     combitemsmap = {"c_subj" : ["tfidf", "binary"],
@@ -262,7 +367,7 @@ if __name__ == "__main__":
     print decode_combcode(s, combitemsmap)
     '''
     
-    
+    '''
     featuremap = {}
     
     featuremap["cadj"] = ["cadjratio", "cadjcount"]
@@ -293,5 +398,5 @@ if __name__ == "__main__":
         print
         
     print featgroup_name_byindex(featuremap, ind=4)    
-    
+    '''
     

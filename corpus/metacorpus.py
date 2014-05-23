@@ -138,7 +138,7 @@ def encode_subjectivity_labels(literallabel):
 
 
 # EXPERIMENTS
-learningrootpath2 = "/home/dicle/Dicle/Tez/corpusstats/learning8/"
+learningrootpath2 = "/home/dicle/Dicle/Tez/corpusstats/learning9_svmscale/"
 learningrootpath = "/home/dicle/Dicle/Tez/corpusstats/learning4/"
 learningdatapath = learningrootpath + os.sep + "data" + os.sep
 learningexperimentspath = learningrootpath + os.sep + "experiments" + os.sep

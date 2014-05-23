@@ -1,4 +1,4 @@
-#Thu Apr 17 13:33:27 EEST 2014
+#Thu May 22 00:03:23 EEST 2014
 eclipse.preferences.version=1
 encoding//corpus/annotation_adder.py=utf-8
 encoding//corpus/annotationbuilder.py=utf-8
@@ -13,6 +13,8 @@ encoding//geziyakurdi/preparelatex.py=utf-8
 encoding//geziyakurdi/preparewordle.py=utf-8
 encoding//languagetools/BigramFeatures.py=utf-8
 encoding//languagetools/SAKsParser.py=utf-8
+encoding//learning/features_combiner.py=utf-8
+encoding//learning/utils.py=utf-8
 encoding//processing/Crawling2.py=utf-8
 encoding//processing/IO.py=utf-8
 encoding//processing/crawling_oldradikal.py=utf-8

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Created on Feb 12, 2014
 
@@ -729,6 +730,38 @@ class FeatureCombiner:
             IOtools.todisc_txt(decodedname, os.path.join(decodednamesfolder, filename+".txt"))
     
     
+    
+    def exclude_one_feature(self):
+  
+        exclusionmap = utils.get_excluded_features_map()
+        
+        for exclusionname, featuremap in exclusionmap.iteritems():
+            p1 = IOtools.ensure_dir(os.path.join(self.combinedfeaturesfolder, exclusionname))
+            
+            for featuregroup, combcodemap in featuremap.iteritems():
+                p2 = IOtools.ensure_dir(os.path.join(p1, featuregroup))
+                
+                for combcode, row in combcodemap.iteritems():
+                    featuredflist = []
+                    
+                    for j,featno in enumerate(row):
+                        print combcode[:8],"  ",row, " featno= ",featno
+                        if featno >= 0:
+                            groupname = sorted(self.featuremap.keys())[j]
+                            print " -> ",groupname           
+                            extractorinstance = self.featuremap[groupname][featno]
+                            featurematrixpath = extractorinstance.getfeaturematrixpath
+                            featurematrix = IOtools.readcsv(featurematrixpath, keepindex=True)
+                            featuredflist.append(featurematrix)
+                     
+                    datamatrix = pd.concat(featuredflist, axis=1) #, verify_integrity=True) # CLOSED DUE TO THE OVERLAPPING WORDS IN ABS AND SUBJ LISTS
+                    
+                    datamatrixpath = os.path.join(p2, combcode+".csv")  
+                    IOtools.tocsv(datamatrix, datamatrixpath, keepindex=True)          
+        
+        
+    
+    
     def featuremapping_to_datamatrix(self):
         filename = ""
         return               
@@ -751,13 +784,28 @@ def get_featurecombinatorial_datasets(datasetpath):
     
 
 
+def get_excludeone_datasets(extendedfeatrootpath, outrootpath, datasetrootpath):
+    extendeddatafolder = IOtools.ensure_dir(os.path.join(extendedfeatrootpath, "extendedfeatures"))
+        
+    feature_combiner = FeatureCombiner(extendeddatafolder, outrootpath, datasetrootpath)
+    feature_combiner.exclude_one_feature()
+    
+
+
+# eski halinden değiştirdim, sadece exclude_one_feature için çalışıyor şimdi. 22 Mayıs 00:02
 def shell():
+    outrootpath = "/home/dicle/Dicle/Tez/corpusstats/learningdata_excludeone/data/"
+    
     datarootpath = metacorpus.learningdatapath
     annotationtypes = ["single"]   # to be a list
 
     for annotationtype in annotationtypes:
-        datasetpath = os.path.join(datarootpath, annotationtype)
-        get_featurecombinatorial_datasets(datasetpath)    
+        extendedfeatrootpath = os.path.join(datarootpath, annotationtype)
+        outpath = os.path.join(outrootpath, annotationtype)
+        get_excludeone_datasets(extendedfeatrootpath, outpath, datarootpath)  
+        
+        
+          
 
 if __name__ == "__main__":
     

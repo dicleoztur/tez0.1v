@@ -19,7 +19,9 @@ class PerformanceEvaluator:
         self.experimentspath = expspath
         self.resultspath = os.path.join(self.experimentspath, "performance")
         self.N = 50   # ranking number
+ 
         #self.metricname = basemetric
+    
     
     def best_score_per_annottype(self, metricname, scorepath=metaexperimentation.expscorepath):
         bigdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
@@ -56,7 +58,7 @@ class PerformanceEvaluator:
                             scorecsvfilepath = p5 + os.sep + metaexperimentation.scorefilename+".csv"
                             scorecsvfile = IOtools.readcsv(scorecsvfilepath)
                             
-                            rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(self.N / 2), [metricname])
+                            rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(self.N / 2), [metricname], self.takeworst)
                             print rankdf.shape
                             #annotdf.loc[:, rankdf.columns.values.tolist()] = rankdf.values.copy()
                             print " ** ",annotdf.shape
@@ -81,15 +83,17 @@ class PerformanceEvaluator:
             #annotdf["annottype"] = annottype  
             print " * ",annotdf.shape
             
-            annotdf = matrixhelpers.get_first_N_rows(annotdf, self.N, [metricname])  
+            annotdf = matrixhelpers.get_first_N_rows(annotdf, self.N, [metricname], ascend=self.takeworst)  
             bigdf = bigdf.append(annotdf)
             # insert annottype as colname to bigdf. cutbigdf from the first 10.
         
         bigdf.sort(["annottype", metricname], ascending=False, inplace=True)
         #resultantdf = matrixhelpers.get_first_N_rows(bigdf, self.N)
-        evaluationname = "best_score_per_annottype-"+metricname.upper()
+        evaluationname = self.prefix+"_score_per_annottype-"+metricname.upper()
         IOtools.tocsv(bigdf, os.path.join(self.resultspath, evaluationname+".csv"))
     # best alg is the same. just output alg name.                                                        
+             
+             
                 
     
     def best_score_per_size(self, metricname, scorepath=metaexperimentation.expscorepath):
