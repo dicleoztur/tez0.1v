@@ -337,15 +337,73 @@ def print_features(featmap, matrix):
 
 
 
-def gettrainset(array, teststart, testfinish):
-    return np.append(array[:teststart], array[testfinish:], axis=0)
+def gettrainset(array, trainstart, trainfinish):
+    start = min(trainstart, trainfinish)
+    finish = max(trainstart, trainfinish)
+    return np.append(array[:start], array[finish:], axis=0)
 
 def gettestset(array, teststart, testfinish):
-    return array[teststart:testfinish]
+    start = min(teststart, testfinish)
+    finish = max(teststart, testfinish)
+    return array[start:finish]
 
 
 def get_ntest(nrows):
-    return int(math.ceil(nrows * (metaexperimentation.testpercentage / 100)))
+    return int(math.ceil(nrows * (metaexperimentation.testpercentage / 100.0)))
+
+
+def get_nsplit(nrows, rate):
+    return int(math.ceil(nrows * (rate / 100.0)))
+
+
+
+# converts labelfileiddict = { label : [fileid]} to X and y 
+def dict2matrix(labelfileiddict, Xpath):
+    
+    y = []
+    
+    datadf = IOtools.readcsv(Xpath, keepindex=True)
+    testinstanceids = []
+    
+    for label, fileids in labelfileiddict.iteritems():
+        testinstanceids.extend(fileids)
+        y.extend([label] * len(fileids))
+    
+    X = datadf.loc[testinstanceids, :].values
+    X[np.isnan(X)] = 0
+    X[np.isinf(X)] = 0
+    y = np.array(y)
+
+    return X,y
+
+# converts fileidlabelpairs = [(fileid, label)] to X (feature matrix) and y (label array)
+def tuple2matrix(fileidlabelpairs, Xpath):
+    
+    fileids = []
+    y = []
+    for fileid,label in fileidlabelpairs:
+        fileids.append(fileid)
+        y.append(label)
+    y = np.array(y)
+    
+    datadf = IOtools.readcsv(Xpath, keepindex=True)
+    datadf = datadf.loc[fileids, :]
+    
+    X = datadf.values   
+    X[np.isnan(X)] = 0
+    X[np.isinf(X)] = 0
+    
+    # check for fileid order
+    count = 0
+    instanceids = datadf.index.values.tolist()
+    for a,b in zip(instanceids, fileids):
+        if a == b:
+            count += 1
+    if count != len(instanceids):
+        print "FAAAAAAAAAAAAALLLLLLLLLLLLLSSSSSSSSSEEEEEEE"
+    
+    return X, y
+
 
 if __name__ == "__main__":
     

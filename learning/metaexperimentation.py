@@ -24,6 +24,8 @@ expscorepath = os.path.join(experimentsrootpath, scoresfoldername)
 expperfpath = os.path.join(experimentsrootpath, perffoldername) 
 
 
+trainpercentage = 70.0
+validationpercentage = 15.0
 testpercentage = 15.0  # percentage of test set
 
 # run at the top of learning
@@ -40,9 +42,15 @@ scoresheader = ["algorithm", "precision", "recall", "fscore", "accuracy"]
 performanceheader = ["annottype", "size", "tagger", "nclasses", "algorithm", "featureset", 
                      "precision", "recall", "fscore", "accuracy"]
 '''
+
+'''  if no cross val
 performanceheader = ["annottype", "labelunion", "algorithm", "featureset", 
                      "precision", "recall", "fscore", "accuracy"]
+'''
 
+# if cross val
+performanceheader = ["annottype", "labelunion", "algorithm", "featureset", "featexc",
+                     "precision", "recall", "fscore", "accuracy"]
 
 scorefilename = "algorithms-scores"
 

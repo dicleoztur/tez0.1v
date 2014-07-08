@@ -1,4 +1,9 @@
 '''
+Created on Jul 3, 2014
+
+@author: dicle
+'''
+'''
 Created on Apr 14, 2014
 
 @author: dicle
@@ -26,6 +31,82 @@ class PerformanceEvaluator:
         if takeworst:
             self.prefix = "worst"
             
+    
+    def best_score_per_fold(self, metricname, scorepath=metaexperimentation.expscorepath):
+        
+        bigdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
+        
+        scorepath = os.path.join(self.experimentspath, "scores")
+        annottypes = IOtools.getfoldernames_of_dir(scorepath)
+        
+        for annottype in annottypes:
+                        
+            p1 = os.path.join(scorepath, annottype)
+            #featcombnames = IOtools.getfoldernames_of_dir(p1)  # list of combcode_NC names            
+            metricclasses = IOtools.getfoldernames_of_dir(p1)
+            
+            for metricclass in metricclasses:
+                
+                p2 = os.path.join(p1, metricclass)
+                featcombnames = IOtools.getfoldernames_of_dir(p2)
+                   
+                for combname in featcombnames:
+                    
+                    p3 = os.path.join(p2, combname)
+                    labelunions = IOtools.getfoldernames_of_dir(p3)
+                    
+                    
+                    for labelunion in labelunions:
+                    
+                        p4 = os.path.join(p3, labelunion)  
+                        folds = IOtools.getfoldernames_of_dir(p4)
+                        
+                        for fold in folds:
+                            
+                            p5 = os.path.join(p4, fold)                       
+                            print p5
+                            annotdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
+                               
+                            scorecsvfilepath = p5 + os.sep + metaexperimentation.scorefilename+".csv"
+                            scorecsvfile = IOtools.readcsv(scorecsvfilepath)
+                            # drop clustering results as they are useless being not worked on (back validation missing)
+                            scorecsvfile = scorecsvfile[np.logical_not(scorecsvfile.algorithm.str.startswith("_MT-Clustering"))]
+                            
+                            rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(self.N / 2), [metricname], ascend=self.takeworst)
+                            print rankdf.shape
+                            #annotdf.loc[:, rankdf.columns.values.tolist()] = rankdf.values.copy()
+                            print " ** ",annotdf.shape
+                            rankdf["labelunion"] = labelunion
+                            rankdf["featureset"] = metricclass + " ** " + combname
+                            rankdf["annottype"] = annottype
+                            rankdf["fold"] = fold
+                            #dflist.append(rankdf)
+                            annotdf = annotdf.append(rankdf)
+                            print scorecsvfile.shape
+                                                           
+                                #bigdf = bigdf.append(rankdf)  # bigdf header = metaexperimentation.performanceheader
+                            
+                            
+                            #annotdf["nclasses"] = nclass
+                        
+                        #annotdf["featureset"] = combname
+                    
+                    #annotdf["size"] = setsize
+                
+                #annotdf["annottype"] = annottype  
+                            print " * ",annotdf.shape
+                
+                            annotdf = matrixhelpers.get_first_N_rows(annotdf, self.N, [metricname], ascend=self.takeworst)  
+                
+                            bigdf = bigdf.append(annotdf)
+            # insert annottype as colname to bigdf. cutbigdf from the first 10.
+        
+        bigdf.sort(["fold", metricname], ascending=self.takeworst, inplace=True)
+        bigdf = bigdf.groupby("fold").head(self.N)
+        #resultantdf = matrixhelpers.get_first_N_rows(bigdf, self.N)
+        evaluationname = self.prefix+"_score_per_fold-"+metricname.upper()
+        IOtools.tocsv(bigdf, os.path.join(self.resultspath, evaluationname+".csv"))
+        
     
     def best_score_per_annottype(self, metricname, scorepath=metaexperimentation.expscorepath):
         
@@ -55,38 +136,32 @@ class PerformanceEvaluator:
                     
                     for labelunion in labelunions:
                     
-                        p4 = os.path.join(p3, labelunion)          
-                        scorecsvfilepath = p4 + os.sep + metaexperimentation.scorefilename+".csv"
-                        scorecsvfile = IOtools.readcsv(scorecsvfilepath)
-                        # drop clustering results as they are useless being not worked on (back validation missing)
-                        scorecsvfile = scorecsvfile[np.logical_not(scorecsvfile.algorithm.str.startswith("_MT-Clustering"))]
+                        p4 = os.path.join(p3, labelunion)  
+                        folds = IOtools.getfoldernames_of_dir(p4)
                         
-                        rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(self.N / 2), [metricname], ascend=self.takeworst)
-                        print rankdf.shape
-                        #annotdf.loc[:, rankdf.columns.values.tolist()] = rankdf.values.copy()
-                        print " ** ",annotdf.shape
-                        rankdf["labelunion"] = labelunion
-                        rankdf["featureset"] = metricclass + " ** " + combname
-                        rankdf["annottype"] = annottype
-                        #dflist.append(rankdf)
-                        annotdf = annotdf.append(rankdf)
-                        print scorecsvfile.shape
-                                                           
-                                #bigdf = bigdf.append(rankdf)  # bigdf header = metaexperimentation.performanceheader
+                        for fold in folds:
                             
+                            p5 = os.path.join(p4, fold)                       
+                                
+                            scorecsvfilepath = p5 + os.sep + metaexperimentation.scorefilename+".csv"
+                            scorecsvfile = IOtools.readcsv(scorecsvfilepath)
+                            # drop clustering results as they are useless being not worked on (back validation missing)
+                            scorecsvfile = scorecsvfile[np.logical_not(scorecsvfile.algorithm.str.startswith("_MT-Clustering"))]
                             
-                            #annotdf["nclasses"] = nclass
-                        
-                        #annotdf["featureset"] = combname
-                    
-                    #annotdf["size"] = setsize
+                            rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(self.N / 2), [metricname], ascend=self.takeworst)
+                            print rankdf.shape
+                            #annotdf.loc[:, rankdf.columns.values.tolist()] = rankdf.values.copy()
+                            print " ** ",annotdf.shape
+                            rankdf["labelunion"] = labelunion
+                            rankdf["featureset"] = metricclass + " ** " + combname
+                            rankdf["annottype"] = annottype
+                            #dflist.append(rankdf)
+                            annotdf = annotdf.append(rankdf)
+                            print scorecsvfile.shape
                 
-                #annotdf["annottype"] = annottype  
-                print " * ",annotdf.shape
+                            annotdf = matrixhelpers.get_first_N_rows(annotdf, self.N, [metricname], ascend=self.takeworst)  
                 
-                annotdf = matrixhelpers.get_first_N_rows(annotdf, self.N, [metricname], ascend=self.takeworst)  
-                
-            bigdf = bigdf.append(annotdf)
+                            bigdf = bigdf.append(annotdf)
             # insert annottype as colname to bigdf. cutbigdf from the first 10.
         
         bigdf.sort(["annottype", metricname], ascending=self.takeworst, inplace=True)
@@ -223,7 +298,6 @@ class PerformanceEvaluator:
         bigdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
         
         #scorepath = os.path.join(self.experimentspath, "scores")
-        print scorepath
         annottypes = IOtools.getfoldernames_of_dir(scorepath)
         
         for annottype in annottypes:
@@ -279,88 +353,11 @@ class PerformanceEvaluator:
   
   
 
-    def best_score_per_featexc(self, metricname, scorepath=metaexperimentation.expscorepath):
-        
-        bigdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
-        
-        #scorepath = os.path.join(self.experimentspath, "scores")
-        
-        exclusiontypes = IOtools.getfoldernames_of_dir(scorepath)
-        
-        for featexctype in exclusiontypes:
-            
-            p0 = os.path.join(scorepath, featexctype)
-            
-            annottypes = IOtools.getfoldernames_of_dir(p0)
-            
-            for annottype in annottypes:
-                
-                annotdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
-                
-                p1 = os.path.join(p0, annottype)
-                #featcombnames = IOtools.getfoldernames_of_dir(p1)  # list of combcode_NC names            
-                metricclasses = IOtools.getfoldernames_of_dir(p1)
-                
-                for metricclass in metricclasses:
-                    
-                    p2 = os.path.join(p1, metricclass)
-                    featcombnames = IOtools.getfoldernames_of_dir(p2)
-                       
-                    for combname in featcombnames:
-                        
-                        p3 = os.path.join(p2, combname)
-                        labelunions = IOtools.getfoldernames_of_dir(p3)
-                        
-                        
-                        for labelunion in labelunions:
-                        
-                            p4 = os.path.join(p3, labelunion)          
-                            scorecsvfilepath = p4 + os.sep + metaexperimentation.scorefilename+".csv"
-                            scorecsvfile = IOtools.readcsv(scorecsvfilepath)
-                            # drop clustering results as they are useless being not worked on (back validation missing)
-                            #scorecsvfile = scorecsvfile[np.logical_not(scorecsvfile.algorithm.str.startswith("_MT-Clustering"))]
-                            
-                            rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(self.N / 2), [metricname], ascend=self.takeworst)
-                            print rankdf.shape
-                            #annotdf.loc[:, rankdf.columns.values.tolist()] = rankdf.values.copy()
-                            print " ** ",annotdf.shape
-                            rankdf["featexc"] = featexctype
-                            rankdf["labelunion"] = labelunion
-                            rankdf["featureset"] = metricclass + " ** " + combname
-                            rankdf["annottype"] = annottype
-                            #dflist.append(rankdf)
-                            annotdf = annotdf.append(rankdf)
-                            print scorecsvfile.shape
-                                                               
-                                    #bigdf = bigdf.append(rankdf)  # bigdf header = metaexperimentation.performanceheader
-                                
-                                
-                                #annotdf["nclasses"] = nclass
-                            
-                            #annotdf["featureset"] = combname
-                        
-                        #annotdf["size"] = setsize
-                    
-                    #annotdf["annottype"] = annottype  
-                    print " * ",annotdf.shape
-                    
-                    annotdf = matrixhelpers.get_first_N_rows(annotdf, self.N, [metricname], ascend=self.takeworst)  
-                    
-                bigdf = bigdf.append(annotdf)
-                # insert annottype as colname to bigdf. cutbigdf from the first 10.
-        
-        IOtools.tocsv(bigdf, os.path.join(self.resultspath, "bigdf.csv"))
-        bigdf.sort(["featexc", metricname], ascending=self.takeworst, inplace=True)
-        #resultantdf = matrixhelpers.get_first_N_rows(bigdf, self.N)
-        evaluationname = self.prefix+"_score_per_featureexclusiontype-"+metricname.upper()
-        IOtools.tocsv(bigdf, os.path.join(self.resultspath, evaluationname+".csv"))
-        
-        
   
     def score_stats(self, metricname, scorepath=metaexperimentation.expscorepath):
         bigdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
         
-        #scorepath = os.path.join(self.experimentspath, "scores")
+        scorepath = os.path.join(self.experimentspath, "scores")
         annottypes = IOtools.getfoldernames_of_dir(scorepath)
                 
         for annottype in annottypes:
@@ -384,16 +381,23 @@ class PerformanceEvaluator:
                     for labelunion in labelunions:
                         
                         p4 = os.path.join(p3, labelunion)          
-                        scorecsvfilepath = p4 + os.sep + metaexperimentation.scorefilename+".csv"
-                        scorecsvfile = IOtools.readcsv(scorecsvfilepath) 
+                        folds = IOtools.getfoldernames_of_dir(p4)
                         
-                        # drop clustering results as they are useless being not worked on (back validation missing)
-                        scorecsvfile = scorecsvfile[np.logical_not(scorecsvfile.algorithm.str.startswith("_MT-Clustering"))]
+                        for fold in folds:
+                            
+                            p5 = os.path.join(p4, fold)
                         
-                        scorecsvfile["labelunion"] = labelunion
-                        scorecsvfile["featureset"] = metricclass + " ** " + combname
-                        scorecsvfile["annottype"] = annottype
-                        bigdf = bigdf.append(scorecsvfile)
+                            scorecsvfilepath = p5 + os.sep + metaexperimentation.scorefilename+".csv"
+                            scorecsvfile = IOtools.readcsv(scorecsvfilepath) 
+                            
+                            # drop clustering results as they are useless being not worked on (back validation missing)
+                            scorecsvfile = scorecsvfile[np.logical_not(scorecsvfile.algorithm.str.startswith("_MT-Clustering"))]
+                            
+                            scorecsvfile["labelunion"] = labelunion
+                            scorecsvfile["featureset"] = metricclass + " ** " + combname
+                            scorecsvfile["annottype"] = annottype
+                            scorecsvfile["fold"] = fold
+                            bigdf = bigdf.append(scorecsvfile)
         
         
         print "bigdf ",bigdf.shape
@@ -402,7 +406,7 @@ class PerformanceEvaluator:
         
         IOtools.tocsv(bigdf, os.path.join(self.resultspath, "bigdf.csv"))
         
-        groups = ["annottype", "labelunion", "algorithm", "featureset"]
+        groups = ["annottype", "labelunion", "algorithm", "featureset", "fold"]
         for factor in groups:
             
             grouped = bigdf.groupby(factor)
@@ -451,15 +455,13 @@ class PerformanceEvaluator:
 
 
 def evaluate_featureexcluded_datasets():
-    #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learningdata_excludeone/experiments/"
-    rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/experiments_final_featureexclude/experiments/"
-    
+    rootpath = "/home/dicle/Dicle/Tez/corpusstats/learningdata_excludeone/experiments/"
     metrics = ["accuracy", "fscore", "precision", "recall"]
     
     scorespath = os.path.join(rootpath, "scores")
     exclusiontypes = IOtools.getfoldernames_of_dir(scorespath)
     
-    
+    '''
     for exclusionname in exclusiontypes:
         inputscorespath = os.path.join(scorespath, exclusionname)
         recordpath = os.path.join(rootpath, exclusionname)
@@ -473,7 +475,7 @@ def evaluate_featureexcluded_datasets():
                 evaluator.best_score_per_annottype(metricname=metric, scorepath=inputscorespath)
                 evaluator.best_score_per_featureset(metricname=metric, scorepath=inputscorespath)
                 evaluator.best_score_per_labelunion(metricname=metric, scorepath=inputscorespath)
-    
+    '''
 
     
     for exclusionname in exclusiontypes:
@@ -484,33 +486,12 @@ def evaluate_featureexcluded_datasets():
         for metric in metrics:
             evaluator.score_stats(metricname=metric, scorepath=inputscorespath)
             
-
-# get best and worst per exclusion 
-def evaluate_featureexcluded_datasets2():
-    #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learningdata_excludeone/experiments/"
-    rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/experiments_final_featureexclude/experiments/"
-    
-    metrics = ["accuracy", "fscore", "precision", "recall"]
-    
-    inputscorespath = os.path.join(rootpath, "scores")
-    recordpath = os.path.join(rootpath, "performance")
-    
-        
-    for minmax in [True, False]: 
-        evaluator = PerformanceEvaluator(expspath=recordpath, takeworst=minmax)            
-        for metric in metrics:
-            print
             
-            evaluator.best_score_per_featexc(metricname=metric, scorepath=inputscorespath)
-                      
 
 
 def evaluate_fullsets():
-    
-    rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/"
-    #folders = ["learning9", "learning9_svmscale", "learning9_noscale"]
-    folders = ["experiments_final2"]
-    
+    rootpath = "/home/dicle/Dicle/Tez/corpusstats/"
+    folders = ["learning9", "learning9_svmscale", "learning9_noscale"]
     metrics = ["accuracy", "fscore", "precision", "recall"]
     
     for foldername in folders:
@@ -540,12 +521,29 @@ def evaluate_fullsets():
             print metric,"  0000000"
             evaluator.score_stats(metricname=metric, scorepath=inputscorespath)
             
+
+
+def evaluate_cross_validation():
+    
+    metrics = ["accuracy", "fscore", "precision", "recall"]
+    
+    rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/experiments_10fold3/"
+    inpath = os.path.join(rootpath, "scores")
+    outpath = os.path.join(rootpath, "performance") 
+    
+    evaluator = PerformanceEvaluator(expspath=rootpath, takeworst=True)
+    
+    for metric in metrics:
+        evaluator.best_score_per_fold(metric)
+        evaluator.score_stats(metric)
             
 
 if __name__ == "__main__":
     
-    evaluate_fullsets()
-    #evaluate_featureexcluded_datasets2()            
+    evaluate_cross_validation()
+    
+    #evaluate_fullsets()
+    #evaluate_featureexcluded_datasets()            
                            
         
     #evaluator.best_score_per_annottype(metricname="accuracy")
