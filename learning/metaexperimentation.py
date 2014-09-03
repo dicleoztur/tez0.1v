@@ -24,9 +24,9 @@ expscorepath = os.path.join(experimentsrootpath, scoresfoldername)
 expperfpath = os.path.join(experimentsrootpath, perffoldername) 
 
 
-trainpercentage = 70.0
+#trainpercentage = 70.0
 validationpercentage = 15.0
-testpercentage = 15.0  # percentage of test set
+testpercentage = 15.0 #20.0  # percentage of test set
 
 # run at the top of learning
 def initialize_experiments_folder():

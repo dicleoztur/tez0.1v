@@ -523,24 +523,195 @@ def evaluate_fullsets():
             
 
 
-def evaluate_cross_validation():
+def evaluate_cross_validation(rootpath):
     
     metrics = ["accuracy", "fscore", "precision", "recall"]
     
-    rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/experiments_10fold3/"
+    #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning11/experiments_10fold_scale/"
+    #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/exp-weaklabels/crossval/"
+    
     inpath = os.path.join(rootpath, "scores")
     outpath = os.path.join(rootpath, "performance") 
     
-    evaluator = PerformanceEvaluator(expspath=rootpath, takeworst=True)
+    for minmax in [True, False]:
+        evaluator = PerformanceEvaluator(expspath=rootpath, takeworst=minmax)
+        for metric in metrics:
+            evaluator.best_score_per_fold(metric)
+    
+    evaluator = PerformanceEvaluator(expspath=rootpath)
+    for metric in metrics:
+        evaluator.score_stats(metric)
+        
+    get_fold_averages(outpath)
+
+
+
+def get_fold_averages_ablation():
+    ablationCVscoresroot = "/home/dicle/Dicle/Tez/corpusstats/learning11/ablation2/"
+    ablationtypes = ["item", "group", "onedim"]
+    
+    annotationtypes = ["double"]
+    featsets = ["redef-rat_lex-rat"]
+    '''labelunions = ["EACHobj-EACHsubj","ALLobj-ALLsubj","ALLobj-STGsubj", 
+               "STGobj-ALLsubj", "STGobj-STGsubj", "WKobj-WKsubj"]
+    '''
+    
+    
+    for ablationtype in ablationtypes:
+        
+        print ablationtype
+        
+        p1 = os.path.join(ablationCVscoresroot, ablationtype, "scores")
+        
+        exclusionnames = IOtools.getfoldernames_of_dir(p1)
+        
+        for excname in exclusionnames:
+            
+            bigdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
+            
+            p2 = os.path.join(p1, excname)
+            
+            for annottype in annotationtypes:
+                p3 = os.path.join(p2, annottype)
+                
+                for featset in featsets:
+                    p4 = os.path.join(p3, featset)
+                    combname = IOtools.getfoldernames_of_dir(p4)[0] # we know that there is only one folder
+                    
+                    p5 = os.path.join(p4, combname)
+                    labelunions = IOtools.getfoldernames_of_dir(p5)
+                    
+                    for labelunion in labelunions: 
+                        p6 = os.path.join(p5, labelunion)
+                        
+                        folds = IOtools.getfoldernames_of_dir(p6)
+                        
+                        for foldno in folds:
+                            p7 = os.path.join(p6, foldno)
+                                                        
+                            scorecsvfilepath = p7 + os.sep + metaexperimentation.scorefilename+".csv"
+                            scorecsvfile = IOtools.readcsv(scorecsvfilepath)
+                            
+                            print " scorefile ",scorecsvfilepath,"  ",scorecsvfile.shape
+                            
+                            #rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(N / 2), metricnames, ascend=takeworst)
+                            rankdf = scorecsvfile.copy()
+                            rankdf["labelunion"] = labelunion
+                            rankdf["featureset"] = featset + " ** " + combname
+                            rankdf["annottype"] = annottype
+                            rankdf["fold"] = foldno
+                            #dflist.append(rankdf)
+                            bigdf = bigdf.append(rankdf)
+    
+            print bigdf.shape,"  ",p2
+            IOtools.tocsv(bigdf, os.path.join(p2, "bigdf.csv"))
+            get_fold_averages(p2)
+    
+            
+    
+def print_accuracy_ablation():
+    ablationCVscoresroot = "/home/dicle/Dicle/Tez/corpusstats/learning11/ablation2/"
+    ablationtypes = ["item", "group", "onedim"]
+    
+    annotationtypes = ["double"]
+    featsets = ["redef-rat_lex-rat"]
+    '''labelunions = ["EACHobj-EACHsubj","ALLobj-ALLsubj","ALLobj-STGsubj", 
+               "STGobj-ALLsubj", "STGobj-STGsubj", "WKobj-WKsubj"]
+    '''
+    
+    inscorescsv = "fold_stats-ACCURACY.csv"
+    
+    for ablationtype in ablationtypes:
+        
+        print ablationtype
+        
+        p1 = os.path.join(ablationCVscoresroot, ablationtype, "scores")
+        
+        exclusionnames = IOtools.getfoldernames_of_dir(p1)
+        
+        for excname in exclusionnames:
+            
+            print excname           
+            p2 = os.path.join(p1, excname)
+            
+            accdf = IOtools.readcsv(os.path.join(p2, inscorescsv), False)
+            
+            #filter for relevant lunions
+            featset = "redef-rat_lex-rat ** comb975_F_0-0_1-1_2-1_3-3_4-0_5-1_6-1_7-0_8-3"
+            annottype = "(double"
+            alg = "_MT-classification_alg-SVC_k-rbf_C-1)"
+            lunions = ["EACHobj-EACHsubj","ALLobj-ALLsubj","ALLobj-STGsubj", 
+                       "STGobj-ALLsubj", "STGobj-STGsubj", "WKobj-WKsubj"]
+            # get mean accuracy and std
+            #accdf["meanROUND"] = accdf.iloc[:, 4].values
+            
+            nrows, ncols = accdf.shape
+            for l in lunions:
+                rowname = ", ".join([annottype, featset,l, alg])
+                rowname = rowname.strip().decode("utf8")
+                print "q",rowname,"q 00 ",accdf.iloc[nrows-2,0]
+                print type(rowname)," 00 ",type(accdf.iloc[5,0])
+                print len(rowname)," 00 ",len(accdf.iloc[5,0])
+                print rowname == accdf.iloc[nrows-2,0]
+                xdf = accdf[accdf.iloc[:,0] == rowname]
+                print l
+                print "\t",xdf.loc[:, "accround"],"\t",xdf.loc[:, "stdround"]
+                print
+            print "\n\n"
+            
+            
+    
+def get_fold_averages(resultspath):
+#def get_fold_averages(crossvalallresultspath):
+    #crossvalallresultspath = "/home/dicle/Dicle/Tez/corpusstats/learning10/exp-weaklabels/crossval/performance/"
+    
+    bigdf = IOtools.readcsv(resultspath+os.sep+"bigdf.csv", False)
+    
+    print bigdf.shape," ",bigdf.columns.values
+    print bigdf.iloc[0,[2,3]],"  ",bigdf.iloc[4,5]
+    
+    g1 = bigdf.groupby(["annottype", "featureset", "labelunion", "algorithm"])
+
+    metrics = ["accuracy", "fscore", "precision", "recall"]
+    
+    
+    dfg = g1.mean()
+    
+    
+    #print dfg.columns,"  ",dfg.shape
+    
+    x = dfg.index.values.tolist()
+   
+    nrows, _ = dfg.shape
     
     for metric in metrics:
-        evaluator.best_score_per_fold(metric)
-        evaluator.score_stats(metric)
-            
+        outdf = pd.DataFrame(np.zeros((nrows, 4)), index=x, columns=["mean", "min", "max", "std"])
+        
+        meandf = g1.mean()
+        mindf = g1.min()
+        maxdf = g1.max()
+        stddf = g1.std()
+        
+        outdf["mean"] = meandf[metric]
+        outdf["min"] = mindf[metric]
+        outdf["max"] = maxdf[metric]
+        outdf["std"] = stddf[metric]
+        
+        filename = resultspath+os.sep+"fold_stats-"+metric.upper()
+        print filename
+        outdf["accround"] = np.around(outdf.loc[:,"mean"].values*100, 2)
+        outdf["stdround"] = np.around(outdf.loc[:,"std"].values*100, 2)
+        IOtools.tocsv(outdf, filename+".csv", True)            
+
+
 
 if __name__ == "__main__":
     
-    evaluate_cross_validation()
+    #evaluate_cross_validation()
+    
+    #ablation
+    #get_fold_averages_ablation()
+    #print_accuracy_ablation()
     
     #evaluate_fullsets()
     #evaluate_featureexcluded_datasets()            
@@ -558,5 +729,6 @@ if __name__ == "__main__":
     evaluator.best_score_per_tagger(metricname="fscore")
     '''
     
+    evaluate_cross_validation(rootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/5fold_test20p/")
     
 

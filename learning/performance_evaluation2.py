@@ -486,14 +486,14 @@ def evaluate_featureexcluded_datasets():
             
 
 # get best and worst per exclusion 
-def evaluate_featureexcluded_datasets2():
+def evaluate_featureexcluded_datasets2(rootpath):
     #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learningdata_excludeone/experiments/"
-    rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/experiments_final_featureexclude/experiments/"
+    #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/experiments_final_featureGROUPexclude/"
     
     metrics = ["accuracy", "fscore", "precision", "recall"]
     
     inputscorespath = os.path.join(rootpath, "scores")
-    recordpath = os.path.join(rootpath, "performance")
+    recordpath = os.path.join(rootpath)
     
         
     for minmax in [True, False]: 
@@ -508,15 +508,16 @@ def evaluate_featureexcluded_datasets2():
 def evaluate_fullsets():
     
     rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/"
+    #rootpath = "/home/dicle/Dicle/Tez/corpusstats/learning10/exp-weaklabels/"
     #folders = ["learning9", "learning9_svmscale", "learning9_noscale"]
-    folders = ["experiments_final2"]
+    folders = ["experiments_final_scale"]
     
     metrics = ["accuracy", "fscore", "precision", "recall"]
     
     for foldername in folders:
         
-        recordpath = os.path.join(rootpath, foldername, "experiments")
-        inputscorespath = os.path.join(rootpath, foldername, "experiments", "scores")
+        recordpath = os.path.join(rootpath, foldername)
+        inputscorespath = os.path.join(rootpath, foldername, "scores")
         
         for minmax in [True, False]:
             
@@ -530,17 +531,17 @@ def evaluate_fullsets():
                 evaluator.best_score_per_labelunion(metricname=metric, scorepath=inputscorespath)
 
     
-    for foldername in folders:
-        
-        recordpath = os.path.join(rootpath, foldername, "experiments")
-        inputscorespath = os.path.join(rootpath, foldername, "experiments", "scores")
         
         evaluator = PerformanceEvaluator(expspath=recordpath, takeworst=minmax)            
         for metric in metrics:
             print metric,"  0000000"
             evaluator.score_stats(metricname=metric, scorepath=inputscorespath)
             
-            
+
+
+
+    
+                
 
 if __name__ == "__main__":
     

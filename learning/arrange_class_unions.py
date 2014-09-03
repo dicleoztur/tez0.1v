@@ -84,8 +84,105 @@ def get_StgObj_AllSubj_class(originallabelspath, outfolder, stgobjval=4, in_NC=5
     IOtools.tocsv(twolabeldf, outpath, keepindex=True)
 
 
-# 1,2 -> "s"; 3,4 -> "o"; 5 -> rand("s","o")
-def get_AllObj_StgSubj_class(originallabelspath, outfolder, stgsubjval=4, in_NC=5):
+
+'''  22 Temmuz - on writing results: why adding weak labels increases performance? '''
+# 1,2 -> "s"; 4 -> "o"; 5 -> ignore
+def get_WkObj_AllSubj_class(originallabelspath, outfolder, wkobjval=3, in_NC=5):
+    
+    out_NC = 2
+    if in_NC <= out_NC:
+        return
+
+    labeldf = IOtools.readcsv(originallabelspath, keepindex=True)
+    labeldf = labeldf[labeldf["answer"].isin([wkobjval, 1, 2])]
+
+    labelvector = labeldf.values
+    labelvector = np.array(labelvector, dtype=object)
+    
+    if wkobjval not in labelvector:
+        return
+    
+    # replace values  12->"sub"; 34->"obj"
+    labelvector[labelvector == 1] = 12
+    labelvector[labelvector == 2] = 12
+    labelvector[labelvector == 3] = 34
+        
+    outpath = os.path.join(ensure_unionclass_dir(outfolder, "WKobj-ALLsubj", out_NC), metacorpus.labelsfilename + ".csv")
+    twolabeldf = pd.DataFrame(labelvector, columns=labeldf.columns.values.tolist(), index=labeldf.index.values.tolist())
+    IOtools.tocsv(twolabeldf, outpath, keepindex=True)
+
+'''  22 Temmuz '''
+# 2 -> "s"; 3,4 -> "o"; 5 -> rand("s","o")
+def get_AllObj_WkSubj_class(originallabelspath, outfolder, wksubjval=2, in_NC=5):
+    
+    out_NC = 2
+    if in_NC <= out_NC:
+        return
+
+    labeldf = IOtools.readcsv(originallabelspath, keepindex=True)
+    labeldf = labeldf[labeldf["answer"].isin([wksubjval, 3, 4])]
+
+    labelvector = labeldf.values
+    labelvector = np.array(labelvector, dtype=object)
+    
+    if wksubjval not in labelvector:
+        return
+    
+    # replace values  12->"sub"; 34->"obj"
+    labelvector[labelvector == wksubjval] = 12
+    labelvector[labelvector == 3] = 34
+    labelvector[labelvector == 4] = 34
+        
+    outpath = os.path.join(ensure_unionclass_dir(outfolder, "ALLobj-WKsubj", out_NC), metacorpus.labelsfilename + ".csv")
+    twolabeldf = pd.DataFrame(labelvector, columns=labeldf.columns.values.tolist(), index=labeldf.index.values.tolist())
+    IOtools.tocsv(twolabeldf, outpath, keepindex=True)
+    
+
+
+# outputs the instances whose values are strongly subjective or strongly objective
+def get_WkObj_StgSubj_class(originallabelspath, outfolder, wkobjval=3, stgsubjval=1):
+    out_NC = 2
+    
+    labeldf = IOtools.readcsv(originallabelspath)   #, keepindex=True)
+    labelvector = labeldf["answer"].values
+    labelvector = np.array(labelvector, dtype=object)
+
+
+    if wkobjval not in labelvector or stgsubjval not in labelvector:
+        #print "VAL NOT FOUND"
+        return
+    
+    # drop rows if answer not in [1,4]
+
+    stronglabelsdf = labeldf[labeldf["answer"].isin([wkobjval, stgsubjval])]
+    outpath = os.path.join(ensure_unionclass_dir(outfolder, "WKobj-STGsubj", out_NC), metacorpus.labelsfilename + ".csv")
+    IOtools.tocsv(stronglabelsdf, outpath)
+
+
+# outputs the instances whose values are strongly subjective or strongly objective
+def get_StgObj_WkSubj_class(originallabelspath, outfolder, stgobjval=4, wksubjval=2):
+    out_NC = 2
+    
+    labeldf = IOtools.readcsv(originallabelspath)   #, keepindex=True)
+    labelvector = labeldf["answer"].values
+    labelvector = np.array(labelvector, dtype=object)
+
+
+    if stgobjval not in labelvector or wksubjval not in labelvector:
+        #print "VAL NOT FOUND"
+        return
+    
+    # drop rows if answer not in [1,4]
+
+    stronglabelsdf = labeldf[labeldf["answer"].isin([stgobjval, wksubjval])]
+    outpath = os.path.join(ensure_unionclass_dir(outfolder, "STGobj-WKsubj", out_NC), metacorpus.labelsfilename + ".csv")
+    IOtools.tocsv(stronglabelsdf, outpath)
+
+
+
+
+# 1 -> "s"; 3,4 -> "o"; 5 -> rand("s","o")
+def get_AllObj_StgSubj_class(originallabelspath, outfolder, stgsubjval=1, in_NC=5):
     
     out_NC = 2
     if in_NC <= out_NC:
@@ -177,9 +274,26 @@ def arrange_class_union_variations(originallabelspath, outfolder):
 
 
 
+def add_weak_combs():
+    originallabelspath = "/home/dicle/Dicle/Tez/corpusstats/annotatedtexts/"
+    annottype = "single"
+    agrtype = "halfagr"
+    
+    inpath = os.path.join(originallabelspath, annottype, annottype+"_"+agrtype+"-evals.csv")
+    outpath = "/home/dicle/Dicle/Tez/corpusstats/weaklabels/single/"
+    
+    get_WkObj_AllSubj_class(inpath, outpath, wkobjval=3, in_NC=5)
+    get_AllObj_WkSubj_class(inpath, outpath)
+    get_StgObj_WkSubj_class(inpath, outpath)
+    get_WkObj_StgSubj_class(inpath, outpath)
+    
+    
+
 if __name__ == "__main__":
     
+    add_weak_combs()
     
+    ''' closed 22 temmuz
     f = "/home/dicle/Dicle/Tez/corpusstats/learning2/karalama/labels2/"
     annottypes = ["double", "single"]
     agrtypes = ["halfagr", "fullagr"]
@@ -193,6 +307,9 @@ if __name__ == "__main__":
     #get_AllObj_StgSubj_class(inpath, outfolder=f, in_NC=5)
     
     #print metacorpus.get_annotatedtexts_file_path(annotationtype="single", agreementype="halfagr")
+    '''
+    
+    
     
     '''
     nclasses = [2,3,4]

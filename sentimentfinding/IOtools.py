@@ -74,6 +74,13 @@ def readtextlines(path):
     return lines
 
 
+# input csv contains two items separated by delimiter in each line
+def csv2tuplelist(csvpath, delimiter="\t"):
+    lines = readtextlines(csvpath)
+    tuples = [(line.split(delimiter)[0], line.split(delimiter)[1]) for line in lines]
+    return tuples
+
+
 # ensures if the directory given on *f* exists. if not creates it.
 def ensure_dir(f):
     #d = os.path.dirname(f)
@@ -129,6 +136,11 @@ def todisc_json(path, data, ind=4):
     with open(path, "w") as outfile:
         json.dump(data, outfile, sort_keys=True, indent=ind, ensure_ascii=False)
 
+
+# json is 3-level 
+#def json_to_csv(dct):
+    
+    
 
 def readjson(path):
     with open(path) as infile:
