@@ -1003,10 +1003,30 @@ def split_for_cross_corpus(rootpath,
             Xtrainpath = trainset.get_Xpath(combfilename)
             trainlabelitems = trainset.get_labelitems()
             
+            
+            # ensure no intersect in train and test
+            '''
+            intersect = True
+            count = 0
+            while intersect:
+                trainlabelitems = trainset.get_labelitems()
+                trainids = []
+                testids = []
+                for k in trainlabelitems.keys():
+                    trainids.extend(trainlabelitems[k])
+                for k in testlabelitems.keys():
+                    testids.extend(testlabelitems[k])
+                if len(listutils.getintersectionoflists(trainids, testids)) == 0:
+                    intersect = False
+                count += 1
+                print count,"  intersected ",len(listutils.getintersectionoflists(trainids, testids))
+            '''
+            
             experimentname = traincase + str(j)
             
             scorespath = IOtools.ensure_dir(os.path.join(testfolder, experimentname))
            
+                       
             cross_validation_experiment(outpath=scorespath, 
                                         Xtrain_path=Xtrainpath, 
                                         Xtest_path=Xtestpath, 
@@ -1057,7 +1077,14 @@ def cross_validation_experiment(outpath, Xtrain_path, Xtest_path, train_labelite
             testitems.extend([(fileid, label) for fileid in testids])
 
 
-            
+        # ensure train and test sets do not intersect
+        trainfileids = [fileid for fileid,_ in trainitems]
+        testfileids = [fileids for fileid,_ in testitems]
+        common = listutils.getintersectionoflists(trainfileids, testfileids) 
+        print "\n",outpath
+        print "NUM OF COMMON ITEMS: ",len(common)
+        
+        
         foldpath = IOtools.ensure_dir(os.path.join(outpath, "fold-"+str(foldno)))
         
         metaexperimentation.initialize_score_file(foldpath)
@@ -1070,7 +1097,7 @@ def cross_validation_experiment(outpath, Xtrain_path, Xtest_path, train_labelite
         
         # classify
         run_models(foldpath, Xtrain, ytrain, Xtest, ytest)
-    
+       
     
     
     

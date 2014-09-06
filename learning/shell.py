@@ -14,11 +14,11 @@ import performance_evaluation_crossval
 
 def cross_corpus():
     
-    path = "/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_equaltest/scores"
+    path = "/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_UNequaltest/scores"
     for i in range(1,6):
         p = IOtools.ensure_dir(path + str(i))
          
-        learner_selected.split_for_cross_corpus(rootpath=p, equalsize=True)
+        learner_selected.split_for_cross_corpus(rootpath=p, equalsize=False)
         performance_evaluation_crossval.evaluate_crosscorpus(scoresroot=p)
 
 
