@@ -659,8 +659,74 @@ def print_accuracy_ablation():
                 print
             print "\n\n"
             
-            
+
+def get_allfolds_bigdf(foldrootpath, annottype, featset, labelunion):
     
+    bigdf = pd.DataFrame(columns=metaexperimentation.performanceheader)
+    
+    folds = IOtools.getfoldernames_of_dir(foldrootpath)
+                        
+    for foldno in folds:
+        p1 = os.path.join(foldrootpath, foldno)
+                                    
+        scorecsvfilepath = p1 + os.sep + metaexperimentation.scorefilename+".csv"
+        scorecsvfile = IOtools.readcsv(scorecsvfilepath)
+        
+        print " scorefile ",scorecsvfilepath,"  ",scorecsvfile.shape
+        
+        #rankdf = matrixhelpers.get_first_N_rows(scorecsvfile, int(N / 2), metricnames, ascend=takeworst)
+        rankdf = scorecsvfile.copy()
+        rankdf["labelunion"] = labelunion
+        rankdf["featureset"] = featset 
+        rankdf["annottype"] = annottype
+        rankdf["fold"] = foldno
+        bigdf = bigdf.append(rankdf)
+        #dflist.append(rankdf)
+    
+    
+    print "FOLDROOTPATH ",foldrootpath
+    outcsvpath = os.path.join(foldrootpath, "bigdf.csv")
+    IOtools.tocsv(bigdf, outcsvpath, False)
+    
+        
+        
+        
+
+def evaluate_crosscorpus(scoresroot):
+    
+    featclasses = IOtools.getfoldernames_of_dir(scoresroot)
+    
+    for featureclass in featclasses:
+        
+        p1 = os.path.join(scoresroot, featureclass)
+        lunions = IOtools.getfoldernames_of_dir(p1)
+        
+        for labelunion in lunions:
+            
+            p2 = os.path.join(p1, labelunion)
+
+            testcases = IOtools.getfoldernames_of_dir(p2)
+            
+            for testcase in testcases:
+                
+                p3 = os.path.join(p2, testcase)
+                traincases = IOtools.getfoldernames_of_dir(p3)
+                
+                for traincase in traincases:
+                    
+                    p4 = os.path.join(p3, traincase)   # foldspath
+                    get_allfolds_bigdf(foldrootpath=p4, 
+                                       annottype=testcase + " ** "+traincase, 
+                                       featset=featureclass, 
+                                       labelunion=labelunion)
+                    
+                    get_fold_averages(p4)
+                
+    
+            
+            
+            
+            
 def get_fold_averages(resultspath):
 #def get_fold_averages(crossvalallresultspath):
     #crossvalallresultspath = "/home/dicle/Dicle/Tez/corpusstats/learning10/exp-weaklabels/crossval/performance/"
@@ -729,6 +795,6 @@ if __name__ == "__main__":
     evaluator.best_score_per_tagger(metricname="fscore")
     '''
     
-    evaluate_cross_validation(rootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/5fold_test20p/")
-    
+    #evaluate_cross_validation(rootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/5fold_test20p/")
+    evaluate_crosscorpus(scoresroot="/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_equaltest/scores_equalsize/")
 

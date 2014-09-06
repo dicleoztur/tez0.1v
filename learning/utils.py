@@ -592,11 +592,13 @@ def conduct_cross_validation_notest(k=10,
 
 if __name__ == "__main__":
     
-    #fdict = get_relevant_featuregroupings()
+    fdict = get_relevant_featuregroupings()
+    print fdict
+    '''
     fdict = get_excluded_features_map()
     for k in sorted(fdict.keys()):
         print k, " : ", fdict[k]
-    
+    '''
     
     '''
     s = "comb0_F_0-0_1-0_2-0_3-0_4-0"  #_5-0_6-0_7-0_8-0"

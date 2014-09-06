@@ -842,7 +842,266 @@ def conduct_cross_validation_notest(k=5,
                             ypred = [maxoccurringlabel] * len(ytest)
                             models[0].reportresults(ytest, ypred, experimentname)
                             
+
+
+def get_training_set(annotationtype, agreementtype, featureclass, combfilename):
+    
+    Xpath = os.path.join(datasetspath, combfile + ".csv")
+    
+    
+    return instanceids, Xpath
+
+
+
+def get_corpus_Xpath(annotationtype, combfilename):
+    
+    datasetspath = metacorpus.get_datasets_path(annotationtype)  # finaldatasets
+    Xpath = os.path.join(datasetspath, combfilename + ".csv")
+    return Xpath
+    
+
+# outputs labelitems = {label: [fileid]}
+def get_corpus_labelitems(annotationtype, agreementtype, labelunion):
+    
+    #labelitems = {}
+    labelspath = metacorpus.get_labels_path(annotationtype)
+    lp1 = os.path.join(labelspath, agreementtype)
+    lp2 = os.path.join(lp1, labelunion)                 
+      
+    ylabelspath = os.path.join(lp2, metacorpus.labelsfilename+".csv")
+    y = IOtools.readcsv(ylabelspath, True)                
+    labelitems = y.groupby("answer").groups  # labelitems = {label : [newsid]}
+    
+    return labelitems
+
+
+
+class corpus_definer():
+    name = ""
+    annotationtype = ""
+    agreementtype = ""
+    labelunionfoldername = ""
+    size = 0
+    
+
+    def __init__(self, annottype, agrtype, lunionfolder, name):
+        self.annotationtype = annottype
+        self.agreementtype = agrtype
+        self.labelunionfoldername = lunionfolder
+        self.name = name
+        self.set_size(self.get_original_size())
+        print "size: ",self.size
+    
+    def get_Xpath(self, combfilename):
+        datasetspath = metacorpus.get_datasets_path(self.annotationtype)  # finaldatasets
+        Xpath = os.path.join(datasetspath, combfilename + ".csv")
+        return Xpath
+    
+    def get_labelitems(self):
+        labelspath = metacorpus.get_labels_path(self.annotationtype)
+        lp1 = os.path.join(labelspath, self.agreementtype)
+        lp2 = os.path.join(lp1, self.labelunionfoldername)                 
+          
+        ylabelspath = os.path.join(lp2, metacorpus.labelsfilename+".csv")
+        y = IOtools.readcsv(ylabelspath, True)
+        
+        origsize = y.shape[0]
+        print origsize,"  ->> ",self.size," <<-"
+        if self.size != origsize:
+            print "sizes not equal\n"
+        if self.size != origsize:
+            print self.name,"  selecting"
+            print origsize,"  - ",self.size," -\n"
+            y = y.iloc[random.sample(range(origsize), self.size), :]
+            #csvpath = "/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_equaltest/items/unnnmix-"+self.name+".csv"
+            #IOtools.tocsv(y, csvpath, keepindex=True)
                         
+        labelitems = y.groupby("answer").groups  # labelitems = {label : [newsid]}
+        
+        return labelitems
+    
+    def get_all_labelitems(self):
+        labelspath = metacorpus.get_labels_path(self.annotationtype)
+        lp1 = os.path.join(labelspath, self.agreementtype)
+        lp2 = os.path.join(lp1, self.labelunionfoldername)                 
+          
+        ylabelspath = os.path.join(lp2, metacorpus.labelsfilename+".csv")
+        y = IOtools.readcsv(ylabelspath, True)                
+        labelitems = y.groupby("answer").groups  # labelitems = {label : [newsid]}
+        
+        return labelitems
+    
+    
+    def get_original_size(self):
+        labelitems = self.get_all_labelitems()
+        numofitems = reduce(lambda x,y :len(x)+len(y), labelitems.values())
+        print numofitems,"  ",type(numofitems)
+        return numofitems
+    
+    def set_size(self, newsize):
+        self.size = newsize
+    
+    def get_size(self):
+        return self.size    
+        
+            
+
+def split_for_cross_corpus(rootpath, 
+                           featureclass='redef-rat_lex-rat',
+                           combfilename='comb975_F_0-0_1-1_2-1_3-3_4-0_5-1_6-1_7-0_8-3',
+                           labelunion='ALLobj-ALLsubj_NC-2',
+                           equalsize=False):
+    
+        
+    # corpora definition
+    corpus1 = corpus_definer("double", "fullagr", labelunion, "corpus1")
+    corpus2 = corpus_definer("double", "halfagr", "HALFagr_NC-2", "corpus2")
+    corpus3 = corpus_definer("single", "halfagr", labelunion, "corpus3")
+    
+    corpuslist = {1: corpus1, 2: corpus2, 3: corpus3}
+    minsize = 0
+    if equalsize:  # size should be set to that of the minimum-sized corpus
+        sizes = []
+        for corpus in corpuslist.values():
+            sizes.append(corpus.get_original_size())
+        minsize = min(sizes)
+        for corpus in corpuslist.values():
+            corpus.set_size(minsize)
+    
+    '''
+    corpus1_Xpath = get_corpus_Xpath(corpus1.annotationtype, combfilename)
+    corpus2_Xpath = get_corpus_Xpath(corpus2.annotationtype, combfilename)
+    corpus3_Xpath = get_corpus_Xpath(corpus3.annotationtype, combfilename)
+    
+    corpus1_labelitems = get_corpus_labelitems(corpus1.annotationtype, corpus1.agreementtype, labelunion)
+    corpus2_labelitems = get_corpus_labelitems(corpus2.annotationtype, corpus2.agreementtype, labelunion)
+    corpus3_labelitems = get_corpus_labelitems(corpus3.annotationtype, corpus3.agreementtype, labelunion)
+    '''
+    
+    labelfolderitems = labelunion.split(metaexperimentation.interfeatsep)
+    labelunionname = labelfolderitems[0]
+    ncstr = labelfolderitems[1]
+    nc = ncstr.split(metaexperimentation.intrafeatsep)[-1]
+    nc = int(nc)
+    
+    outputpath = IOtools.ensure_dir(os.path.join(rootpath, featureclass, labelunionname))
+    
+    # experiment with tests from eah corpora
+    testcase = "test_with_corpus"
+    traincase = "train_corpus"
+    
+    for i,testset in corpuslist.iteritems():
+        
+        Xtestpath = testset.get_Xpath(combfilename)
+        testlabelitems = testset.get_labelitems()
+        
+        testname = testcase + str(i)
+        testfolder = IOtools.ensure_dir(os.path.join(outputpath,testname))
+        
+        for j,trainset in corpuslist.iteritems():
+            
+            Xtrainpath = trainset.get_Xpath(combfilename)
+            trainlabelitems = trainset.get_labelitems()
+            
+            experimentname = traincase + str(j)
+            
+            scorespath = IOtools.ensure_dir(os.path.join(testfolder, experimentname))
+           
+            cross_validation_experiment(outpath=scorespath, 
+                                        Xtrain_path=Xtrainpath, 
+                                        Xtest_path=Xtestpath, 
+                                        train_labelitems=trainlabelitems, 
+                                        test_labelitems=testlabelitems)
+            
+    
+    
+    # train with all
+    
+    
+    # test case for all
+
+
+# (train/test)_labelitems = {label : [fileids]}
+# 3 eylul
+def cross_validation_experiment(outpath, Xtrain_path, Xtest_path, train_labelitems, test_labelitems, k=5):
+    
+    for foldno in range(k):
+        # both will contain (fileid, label) 
+        trainitems = []  
+        testitems = []
+        
+        # get train items
+        # for xpath in xpath_list:
+        for label, fileids in train_labelitems.iteritems():
+            nvalid = utils.get_nsplit(len(fileids), metaexperimentation.validationpercentage)
+                    
+            instanceids = fileids   #fileids[:-ntest]
+            validstart = (foldno * (nvalid + 1)) % len(instanceids)
+            validfinish = (validstart + nvalid) % len(instanceids)
+            
+            trainids = utils.gettrainset(instanceids, validstart, validfinish)  # fileids to be included in the train set
+            trainitems.extend([(fileid, label) for fileid in trainids])
+            
+            
+            
+        # get test items                
+        for label, fileids in test_labelitems.iteritems():
+            nvalid = utils.get_nsplit(len(fileids), metaexperimentation.validationpercentage)
+        
+            
+            instanceids = fileids   #fileids[:-ntest]
+            validstart = (foldno * (nvalid + 1)) % len(instanceids)
+            validfinish = (validstart + nvalid) % len(instanceids)
+            
+            testids = utils.gettestset(instanceids, validstart, validfinish)  # fileids to be included in the test set
+            testitems.extend([(fileid, label) for fileid in testids])
+
+
+            
+        foldpath = IOtools.ensure_dir(os.path.join(outpath, "fold-"+str(foldno)))
+        
+        metaexperimentation.initialize_score_file(foldpath)
+        
+        IOtools.tocsv_lst(trainitems, os.path.join(foldpath, "trainitems.csv"))
+        IOtools.tocsv_lst(testitems, os.path.join(foldpath, "testitems.csv"))
+        
+        Xtrain, ytrain = utils.tuple2matrix(trainitems, Xtrain_path)
+        Xtest, ytest = utils.tuple2matrix(testitems, Xtest_path)
+        
+        # classify
+        run_models(foldpath, Xtrain, ytrain, Xtest, ytest)
+    
+    
+    
+    
+def run_models(foldpath, Xtrain, ytrain, Xtest, ytest):
+    
+    models = []    
+    svmclassifier = SVM("", standardize=True)
+
+    models = [svmclassifier]
+    
+    for model in models:
+        model.set_score_folder(foldpath)
+        model.apply_algorithms2(Xtrain, ytrain, Xtest, ytest)
+                            
+    # random and frequency classification for baseline comparison
+    experimentname = "random"
+    distinctlabels = list(set(ytest))
+    ypred = [random.choice(distinctlabels) for _ in range(len(ytest))]
+    models[0].reportresults(ytest, ypred, experimentname)
+    
+    
+    experimentname = "majority"
+    labelcount = [ytest.tolist().count(label) for label in distinctlabels]
+    ind = np.argmax(labelcount)
+    maxoccurringlabel = distinctlabels[ind]
+    ypred = [maxoccurringlabel] * len(ytest)
+    models[0].reportresults(ytest, ypred, experimentname)
+                            
+
+
+       
                             
 # final test after cross validation
 def conduct_final_test(#annotationtype="double",
@@ -1604,8 +1863,10 @@ def shell():
     
     
     # 3 Eylul
-    conduct_cross_validation_notest(outrootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/5fold_test20p/scores/")
+    #conduct_cross_validation_notest(outrootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/5fold_test20p/scores/")
     
+    split_for_cross_corpus(rootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_equaltest/items",
+                           equalsize=True)
    
    
    
