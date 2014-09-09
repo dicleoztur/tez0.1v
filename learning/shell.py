@@ -12,18 +12,44 @@ import performance_evaluation_crossval
 
 
 
+
 def cross_corpus():
     
-    path = "/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_UNequaltest/scores"
-    for i in range(1,6):
+    #path = "/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_equaltest/scores"
+    path = "/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_test_collision/equalsize"
+    for i in range(16,17):
         p = IOtools.ensure_dir(path + str(i))
          
-        learner_selected.split_for_cross_corpus(rootpath=p, equalsize=False)
-        performance_evaluation_crossval.evaluate_crosscorpus(scoresroot=p)
+        learner_selected.split_for_cross_corpus(rootpath=p, equalsize=True)
+        #performance_evaluation_crossval.evaluate_crosscorpus(scoresroot=p)
 
 
+def bag_of_words_baseline_classification(featureclass='redef-rat_lex-rat',
+                                         experimentname='bogfeatures_baseline'):
+    
+    scoresrootpath = "/home/dicle/Dicle/Tez/corpusstats/learning11/bogbaseline"
 
-
+    
+    labelunions = ['STGobj-STGsubj_NC-2',
+                   'ALLobj-STGsubj_NC-2',
+                   'ALLobj-ALLsubj_NC-2',
+                   'STGobj-ALLsubj_NC-2',                 
+                   'WKobj-WKsubj_NC-2',
+                   'EACHobj-EACHsubj_NC-4']
+    
+    #labelunions = ['EACHobj-EACHsubj_NC-4']
+    
+    for lunion in labelunions:
+        learner_selected.bog_baseline_classification(rootpath=scoresrootpath, 
+                                                     featureclass=featureclass,
+                                                     labelunion=lunion)
+    
+        foldrootpath = os.path.join(scoresrootpath, featureclass, lunion[:-5])
+        #foldrootpath = "/home/dicle/Dicle/Tez/corpusstats/learning11/bogbaseline/redef-rat_lex-rat/ALLobj-ALLsubj/bogfeatures_baseline"
+        performance_evaluation_crossval.evaluate_bogbaseline(foldpath=foldrootpath)
+    
+    
+    
 def run_cross_validation(outrootpath):
     k = 5
     #scorespath = os.path.join(outrootpath, "scores")
@@ -74,11 +100,11 @@ if __name__ == "__main__":
     '''
     
     cross_corpus()
-    
+    #bag_of_words_baseline_classification()
     
     #test_sets()
     
     
-    
+
     
     

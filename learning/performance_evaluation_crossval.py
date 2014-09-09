@@ -722,6 +722,15 @@ def evaluate_crosscorpus(scoresroot):
                     
                     get_fold_averages(p4)
                 
+
+
+def evaluate_bogbaseline(foldpath):
+    get_allfolds_bigdf(foldrootpath=foldpath, 
+                        annottype='double', 
+                        featset='redef-rat_lex-rat', 
+                        labelunion='ALLobj-ALLsubj_NC-2')
+                    
+    get_fold_averages(foldpath)
     
             
             

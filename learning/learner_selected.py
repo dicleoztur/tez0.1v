@@ -897,6 +897,11 @@ class corpus_definer():
         Xpath = os.path.join(datasetspath, combfilename + ".csv")
         return Xpath
     
+    def get_bog_Xpath(self):
+        rawfeaturespath = os.path.join(metacorpus.learningdatapath, self.annotationtype, "rawfeatures")
+        Xpath = os.path.join(rawfeaturespath, "contenttermCOUNT.csv")
+        return Xpath
+    
     def get_labelitems(self):
         labelspath = metacorpus.get_labels_path(self.annotationtype)
         lp1 = os.path.join(labelspath, self.agreementtype)
@@ -906,12 +911,11 @@ class corpus_definer():
         y = IOtools.readcsv(ylabelspath, True)
         
         origsize = y.shape[0]
-        print origsize,"  ->> ",self.size," <<-"
+        #print origsize,"  ->> ",self.size," <<-"
+        
         if self.size != origsize:
-            print "sizes not equal\n"
-        if self.size != origsize:
-            print self.name,"  selecting"
-            print origsize,"  - ",self.size," -\n"
+            #print self.name,"  selecting"
+            #print origsize,"  - ",self.size," -\n"
             y = y.iloc[random.sample(range(origsize), self.size), :]
             #csvpath = "/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_equaltest/items/unnnmix-"+self.name+".csv"
             #IOtools.tocsv(y, csvpath, keepindex=True)
@@ -934,7 +938,8 @@ class corpus_definer():
     
     def get_original_size(self):
         labelitems = self.get_all_labelitems()
-        numofitems = reduce(lambda x,y :len(x)+len(y), labelitems.values())
+        #numofitems = reduce(lambda x,y :len(x)+len(y), labelitems.values())
+        numofitems = sum(len(i) for i in labelitems.values())
         print numofitems,"  ",type(numofitems)
         return numofitems
     
@@ -944,7 +949,41 @@ class corpus_definer():
     def get_size(self):
         return self.size    
         
+
+
+def bog_baseline_classification(rootpath, 
+                                featureclass='redef-rat_lex-rat',
+                                combfilename='comb975_F_0-0_1-1_2-1_3-3_4-0_5-1_6-1_7-0_8-3',
+                                labelunion='ALLobj-ALLsubj_NC-2',
+                                experimentname='bogfeatures_baseline'):
+    # use contenttermCOUNT.csv as features which includes 11167 stemmed terms counted
+    
+    corpus = corpus_definer("double", "fullagr", labelunion, "corpus1")
+    
+    labelfolderitems = labelunion.split(metaexperimentation.interfeatsep)
+    labelunionname = labelfolderitems[0]
+    ncstr = labelfolderitems[1]
+    nc = ncstr.split(metaexperimentation.intrafeatsep)[-1]
+    nc = int(nc)
+    
+    scorespath = IOtools.ensure_dir(os.path.join(rootpath, featureclass, labelunionname))
+    
+    # classify
+    Xpath = corpus.get_bog_Xpath()
+    labelitems = corpus.get_labelitems()
+
+    #experimentname = "bogfeatures_baseline"
+    #scorespath = IOtools.ensure_dir(os.path.join(outputpath, experimentname))
+    
+               
+    cross_validation_experiment(outpath=scorespath, 
+                                Xtrain_path=Xpath, 
+                                Xtest_path=Xpath, 
+                                train_labelitems=labelitems, 
+                                test_labelitems=labelitems)
             
+    
+    
 
 def split_for_cross_corpus(rootpath, 
                            featureclass='redef-rat_lex-rat',
@@ -1003,26 +1042,32 @@ def split_for_cross_corpus(rootpath,
             Xtrainpath = trainset.get_Xpath(combfilename)
             trainlabelitems = trainset.get_labelitems()
             
+            experimentname = traincase + str(j)
+            
+            print "\n--------\n",experimentname," ---- ",testname
             
             # ensure no intersect in train and test
             '''
+            print "\n--------\n",experimentname," ---- ",testname
             intersect = True
             count = 0
-            while intersect:
-                trainlabelitems = trainset.get_labelitems()
-                trainids = []
-                testids = []
-                for k in trainlabelitems.keys():
-                    trainids.extend(trainlabelitems[k])
-                for k in testlabelitems.keys():
-                    testids.extend(testlabelitems[k])
-                if len(listutils.getintersectionoflists(trainids, testids)) == 0:
-                    intersect = False
+           
+            trainlabelitems = trainset.get_labelitems()
+            trainids = []
+            testids = []
+            for k in trainlabelitems.keys():
+                trainids.extend(trainlabelitems[k])
+            for k in testlabelitems.keys():
+                testids.extend(testlabelitems[k])
+            if len(listutils.getintersectionoflists(trainids, testids)) != 0:
+                
                 count += 1
-                print count,"  intersected ",len(listutils.getintersectionoflists(trainids, testids))
+            print count,"  intersected ",len(listutils.getintersectionoflists(trainids, testids))
+            print "common items: ",listutils.getintersectionoflists(trainids, testids)
+            print "--------\n"
+            
             '''
             
-            experimentname = traincase + str(j)
             
             scorespath = IOtools.ensure_dir(os.path.join(testfolder, experimentname))
            
@@ -1033,8 +1078,9 @@ def split_for_cross_corpus(rootpath,
                                         train_labelitems=trainlabelitems, 
                                         test_labelitems=testlabelitems)
             
-    
-    
+            print "--------\n"
+            
+            
     # train with all
     
     
@@ -1079,11 +1125,24 @@ def cross_validation_experiment(outpath, Xtrain_path, Xtest_path, train_labelite
 
         # ensure train and test sets do not intersect
         trainfileids = [fileid for fileid,_ in trainitems]
-        testfileids = [fileids for fileid,_ in testitems]
+        testfileids = [fileid for fileid,_ in testitems]
         common = listutils.getintersectionoflists(trainfileids, testfileids) 
         print "\n",outpath
+        print "  tr: ",trainfileids[:5]
+        print "  ts: ",testfileids[:5]
         print "NUM OF COMMON ITEMS: ",len(common)
+        print "common items: ",common
         
+        
+        print " ntrain before: ",len(trainitems)
+        # remove colliding items from train set
+        filtered_trainitems = []
+        for fileid,label in trainitems:
+            if fileid not in common:
+                filtered_trainitems.append((fileid, label))
+                
+        trainitems = filtered_trainitems
+        print " ntrain after: ",len(trainitems)
         
         foldpath = IOtools.ensure_dir(os.path.join(outpath, "fold-"+str(foldno)))
         
@@ -1092,12 +1151,13 @@ def cross_validation_experiment(outpath, Xtrain_path, Xtest_path, train_labelite
         IOtools.tocsv_lst(trainitems, os.path.join(foldpath, "trainitems.csv"))
         IOtools.tocsv_lst(testitems, os.path.join(foldpath, "testitems.csv"))
         
+        '''
         Xtrain, ytrain = utils.tuple2matrix(trainitems, Xtrain_path)
         Xtest, ytest = utils.tuple2matrix(testitems, Xtest_path)
         
         # classify
         run_models(foldpath, Xtrain, ytrain, Xtest, ytest)
-       
+        '''
     
     
     
@@ -1892,9 +1952,13 @@ def shell():
     # 3 Eylul
     #conduct_cross_validation_notest(outrootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/5fold_test20p/scores/")
     
+    '''
     split_for_cross_corpus(rootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_equaltest/items",
                            equalsize=True)
-   
+    '''
+    split_for_cross_corpus(rootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/crosscorpus_test_collision/UNequalsize",
+                           equalsize=False)
+    #bog_baseline_classification(rootpath="/home/dicle/Dicle/Tez/corpusstats/learning11/bogbaseline")
    
    
 if __name__ == "__main__":
