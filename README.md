@@ -1,8 +1,7 @@
 # Detecting Subjectivity in Turkish News Texts  
 *M.Sc. Thesis (Boğaziçi University, 2014)*
 
-This repository contains the codebase, experimental setup, and documentation
-developed for my Master's thesis with the title Detecting Subjectivity in the News Texts in Turkish Language.
+This repository contains the codebase, experimental setup, and documentation for my Master's thesis with the title Detecting Subjectivity in the News Texts in Turkish Language.
 
 ---
 
