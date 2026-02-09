@@ -1,4 +1,4 @@
-# Detecting Subjectivity in Turkish News Texts (M.S. Thesis Project)
+# Detecting Subjectivity in Turkish News Texts (M.S. Thesis)
 
 This repository contains the supervised learning framework and experimental setup for my Master's Thesis: **"Detecting Subjectivity in the News Texts in Turkish Language"** (Boğaziçi University, 2014).
 
