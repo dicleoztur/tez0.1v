@@ -30,13 +30,14 @@ This work proposes a novel feature extraction method and comparison of learning 
 This work was one of the early studies on Turkish subjectivity analysis. 
 
 
-* **Full Thesis:** You can read the complete research on `msc-thesis_DicleOzturk.pdf` or on [Academia.edu](https://www.academia.edu/8561858/Detecting_Subjectivity_in_the_News_Texts_in_Turkish_Language_-_MS_Thesis_2014_).
+* **Thesis Text:**
+You can find the thesis text on ([msc-thesis_DicleOzturk.pdf](msc-thesis_DicleOzturk.pdf)) or on [Academia.edu](https://www.academia.edu/8561858/Detecting_Subjectivity_in_the_News_Texts_in_Turkish_Language_-_MS_Thesis_2014_).
 
 
 ---
 
 ### Author
 
-Developed by **Dicle Öztürk**  
+Developed by Dicle Öztürk.
 dicle@lucitext.io
 
