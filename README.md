@@ -18,8 +18,8 @@ The former reports an observable fact, while the latter reflects an individual
 attitude that may vary across speakers. Subjectivity, in this sense, is tightly
 connected to perspective, evaluation, and implicit stance.
 
-This thesis investigates whether such distinctions can be **learned automatically**
-by computational systems, focusing on **Turkish news texts**, a language and domain
+This thesis investigates whether such distinctions can be learned automatically
+by computational systems, focusing on Turkish news texts, a language and domain
 that pose additional challenges due to rich morphology and limited annotated
 resources.
 
@@ -27,12 +27,12 @@ resources.
 
 ## Beyond Sentiment Analysis
 
-Although often discussed together, **subjectivity detection** and **sentiment
-analysis** address distinct problems.
+Although often discussed together, subjectivity detection** and **sentiment
+analysis address distinct problems.
 
-- Sentiment analysis primarily targets **polarity** (positive, negative, neutral).
-- Subjectivity detection focuses on separating **factual voice** from **subjective
-tone**, regardless of polarity.
+- Sentiment analysis primarily targets polarity (positive, negative, neutral).
+- Subjectivity detection focuses on separating factual voice from subjective
+tone, regardless of polarity.
 
 This work positions subjectivity detection as a foundational task, with potential
 impact on downstream applications such as information extraction, discourse analysis,
@@ -48,15 +48,15 @@ feature-level analysis.
 
 The components are:
 
-- **Features:**  
+- Textual Features:  
   Extraction of subjectivity cues from lexical features, emotion-laden keywords, n-grams, and
   part-of-speech (POS) tag attributes, tailored to Turkish morphology.
 
-- **Dataset:**  
-  Construction of an original dataset of Turkish news texts, labelled using a
+- Dataset:  
+  Construction of a subjectivity-annotaed dataset of Turkish news texts, labelled using a
   bespoke annotation scheme developed as part of this work.
 
-- **Experiments:**  
+- Experiments: 
   Systematic evaluation of multiple feature sets and classifier models
   (e.g. SVM, Naive Bayes) to analyze performance trade-offs and learning behaviour.
 
@@ -73,16 +73,6 @@ Turkish:
 - A feature-driven approach highlighting linguistic and morpho-syntactic cues
 - Empirical insights into model and feature interactions in subjectivity learning
 
----
-
-## Repository Contents
-
-This repository includes:
-
-- **Feature Extraction and Classification Code** 
-- **Morphological Analysis Tools** for Turkish
-- **Experimental Framework** supporting feature ablation and model comparison
-- **Documentation** reflecting the analytical and experimental process
 
 ---
 
