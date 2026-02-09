@@ -1,5 +1,5 @@
 # Detecting Subjectivity in Turkish News Texts  
-*M.S. Thesis (Boğaziçi University, 2014)*
+*M.Sc. Thesis (Boğaziçi University, 2014)*
 
 This repository contains the codebase, experimental setup, and documentation
 developed for my Master's thesis with the title Detecting Subjectivity in the News Texts in Turkish Language.
@@ -100,6 +100,7 @@ The thesis manuscript is available:
 
 ## Author
 
-**Dicle Öztürk**  
-M.S., Boğaziçi University  
-Senior NLP / Machine Learning Consultant
+
+Dicle Öztürk 
+dicle@lucitext.io
+
