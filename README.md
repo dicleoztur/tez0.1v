@@ -1,43 +1,107 @@
-# Detecting Subjectivity in Turkish News Texts (M.S. Thesis)
+# Detecting Subjectivity in Turkish News Texts  
+*M.S. Thesis (Boğaziçi University, 2014)*
 
-This repository contains the supervised learning framework and experimental setup for my Master's Thesis: **"Detecting Subjectivity in the News Texts in Turkish Language"** (Boğaziçi University, 2014).
+This repository contains the codebase, experimental setup, and documentation
+developed for my Master's thesis:
 
----
-
-### Purpose: Distinguishing Opinion from Fact
-Automated recognition of subjectivity is a complex task that goes beyond simple sentiment analysis. While sentiment analysis focuses on polarity (positive/negative), subjectivity detection investigates the methods of distinguishing a **factual voice** from a **subjective tone**.
-
+**Detecting Subjectivity in the News Texts in Turkish Language**
 
 ---
 
-### Approach & Methodology 
-This work proposes a novel feature extraction method and comparison of learning algorithms for subjectivity clues in Turkish, focusing on:
-* **Lexical & POS Attributes:** Extracting subjectivity features from word-level features, N-grams, Part-of-Speech tag attributes and sentiment-laden keywords.
-* **Supervised Learning Framework:** Development of an ML-based system with various classifier models to predict the subjective attitude of a piece of text.
-* **Original Dataset & Annotation:** Creation of a unique ground truth dataset consisting of labelled Turkish news texts, based on a custom-developed annotation scheme.
-* **Experimental Depth:** Experiments comparing different features and models (SVM, Naive Bayes) to optimize prediction accuracy.
+## Motivation and Problem Setting
+
+Identifying subjective language is a fundamental challenge in natural language
+understanding. While humans can effortlessly distinguish between factual reporting
+and subjective judgement, enabling computers to make the same distinction remains
+non-trivial.
+
+Consider the difference between the statements *“The weather is rainy”* and
+*“The weather is nice.”*  
+The former reports an observable fact, while the latter reflects an individual
+attitude that may vary across speakers. Subjectivity, in this sense, is tightly
+connected to perspective, evaluation, and implicit stance.
+
+This thesis investigates whether such distinctions can be **learned automatically**
+by computational systems, focusing on **Turkish news texts**, a language and domain
+that pose additional challenges due to rich morphology and limited annotated
+resources.
 
 ---
 
-### Repository Contents
-* **ML Basis:** Code for feature extraction and classification.
-* **Morphological Analysis:** Custom tools for handling the rich and complex morphology of the Turkish language.
-* **Framework:** The structure for ablation studies of features and model comparison.
+## Beyond Sentiment Analysis
+
+Although often discussed together, **subjectivity detection** and **sentiment
+analysis** address distinct problems.
+
+- Sentiment analysis primarily targets **polarity** (positive, negative, neutral).
+- Subjectivity detection focuses on separating **factual voice** from **subjective
+tone**, regardless of polarity.
+
+This work positions subjectivity detection as a foundational task, with potential
+impact on downstream applications such as information extraction, discourse analysis,
+and word-sense disambiguation, and on understanding language and linguistic features.
 
 ---
 
-### Research & Legacy
-This work was one of the early studies on Turkish subjectivity analysis. 
+## Methodology and Approach
 
+The thesis proposes a supervised learning framework for subjectivity detection
+based on classical machine learning techniques, emphasizing interpretability and
+feature-level analysis.
 
-* **Thesis Text:**
-You can find the thesis text on ([msc-thesis_DicleOzturk.pdf](msc-thesis_DicleOzturk.pdf)) or on [Academia.edu](https://www.academia.edu/8561858/Detecting_Subjectivity_in_the_News_Texts_in_Turkish_Language_-_MS_Thesis_2014_).
+The components are:
 
+- **Features:**  
+  Extraction of subjectivity cues from lexical features, emotion-laden keywords, n-grams, and
+  part-of-speech (POS) tag attributes, tailored to Turkish morphology.
+
+- **Dataset:**  
+  Construction of an original dataset of Turkish news texts, labelled using a
+  bespoke annotation scheme developed as part of this work.
+
+- **Experiments:**  
+  Systematic evaluation of multiple feature sets and classifier models
+  (e.g. SVM, Naive Bayes) to analyze performance trade-offs and learning behaviour.
 
 ---
 
-### Author
+## Contributions
 
-Developed by Dicle Öztürk.
-dicle@lucitext.io
+This thesis makes several contributions to the study of subjectivity detection in
+Turkish:
 
+- One of the early supervised frameworks for subjectivity detection in Turkish news
+  texts
+- A newly annotated corpus with a clearly defined subjectivity annotation scheme
+- A feature-driven approach highlighting linguistic and morpho-syntactic cues
+- Empirical insights into model and feature interactions in subjectivity learning
+
+---
+
+## Repository Contents
+
+This repository includes:
+
+- **Feature Extraction and Classification Code** 
+- **Morphological Analysis Tools** for Turkish
+- **Experimental Framework** supporting feature ablation and model comparison
+- **Documentation** reflecting the analytical and experimental process
+
+---
+
+## Thesis Text
+
+The thesis manuscript is available:
+
+- As a PDF in this repository:  
+  [msc-thesis_DicleOzturk.pdf](msc-thesis_DicleOzturk.pdf)
+- On Academia.edu:  
+  https://www.academia.edu/8561858/Detecting_Subjectivity_in_the_News_Texts_in_Turkish_Language_-_MS_Thesis_2014_
+
+---
+
+## Author
+
+**Dicle Öztürk**  
+M.S., Boğaziçi University  
+Senior NLP / Machine Learning Consultant
